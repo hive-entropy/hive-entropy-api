@@ -13,16 +13,12 @@ set(CMAKE_CXX_STANDARD 11)
 # Set in which directories cmake will search for headers
 include_directories(include)
 
+# Compilation Flags
+set(CMAKE_C_FLAGS " -Wall -g ")
+
 # Set the list of source files
-set(SOURCE_FILES
-        src/main.cpp
-        src/Client.cpp
-        src/DistributionHandler.cpp
-        src/Matrix.cpp
-        src/ResultHandler.cpp
-        src/Server.cpp
-        src/Socket.cpp
-        src/Validator.cpp)
+#set(SOURCE_FILES $(ls src/*.cpp))
+file( GLOB SOURCE_FILES src/*.cpp include/*.h )
 
 # Find the OpenBlas package
 find_package(BLAS REQUIRED)
