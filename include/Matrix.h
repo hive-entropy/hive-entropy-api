@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include <iostream>
+#include <type_traits>
 
 namespace MatrixArchetype{
     static const char ZEROS = '0';
@@ -9,36 +10,40 @@ namespace MatrixArchetype{
     static const char ID = 'I';
 }
 
+template<typename T>
 class Matrix{
+
+    static_assert(std::is_arithmetic<NumericType>::value, "Matrix cannot be instantiated with a non-numeric type");
+
     private:
         int rows;
         int columns;
         int elements;
         int type;
-        double* data;
+        T* data;
 
     public:
-        explicit Matrix(int rows, int columns, double* data);
+        explicit Matrix(int rows, int columns, T* data);
         Matrix(int rows, int columns, char archetype);
         Matrix(const Matrix& m);
         ~Matrix();
 
-        void putColumn(int j, double* elems);
-        void putRow(int i, double* elems);
-        void put(int i, int j, double elem);
+        void putColumn(int j, T* elems);
+        void putRow(int i, T* elems);
+        void put(int i, int j, T elem);
         void putSubmatrix(int startRow, int startColumn, Matrix const& m);
 
-        double get(int i, int j);
-        double* getRow(int i);
-        double* getColumn(int j);
+        T get(int i, int j);
+        T* getRow(int i);
+        T* getColumn(int j);
 
-        double* getData();
+        T* getData();
         int getRows();
         int getColumns();
         int getType();
         int getElements(); 
 
-        void setData(double* data);
+        void setData(T* data);
 
         Matrix operator*(Matrix const& other);
         Matrix operator+(Matrix const& other);
