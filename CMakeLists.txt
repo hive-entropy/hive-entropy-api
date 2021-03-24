@@ -4,37 +4,31 @@
 
 # Set minimum cmake version
 cmake_minimum_required(VERSION 3.17)
+# Set compiler standard to C++11
+set(CMAKE_CXX_STANDARD 11)
+# Compilation Flags
+set(CMAKE_C_FLAGS " -Wall -g ")
 # Set project name
 project(PDS)
 
-# Set compiler standard to C++11
-set(CMAKE_CXX_STANDARD 11)
+# Add the library project to be build
+add_subdirectory(lib/OpenBLAS/)
 
 # Set in which directories cmake will search for headers
 include_directories(include)
-
-# Compilation Flags
-set(CMAKE_C_FLAGS " -Wall -g ")
+# Add include directory for cblas.h
+#file(INSTALL lib/OpenBLAS/cblas.h DESTINATION ${PROJECT_SOURCE_DIR}/lib) # Copy cblas.h to lib to prevent include of other headers
+#include_directories(lib)
 
 # Set the list of source files
-#set(SOURCE_FILES $(ls src/*.cpp))
-file( GLOB SOURCE_FILES src/*.cpp include/*.h )
-
-# Find the OpenBlas package
-find_package(BLAS REQUIRED)
-message("OpenBLAS found.")
-find_path(BLAS_INCLUDE_DIRS cblas.h
-        /usr/include
-        /usr/local/include
-        $ENV{BLAS_HOME}/include)
-message(${BLAS_LIBRARIES})
-message(${BLAS_INCLUDE_DIRS})
-include_directories(${BLAS_INCLUDE_DIRS})
+# Source files should be added manually (or by the IDE), not automatically detected
+# For details : https://stackoverflow.com/a/57928919/15249616
+set(SOURCE_FILES src/main.cpp src/Matrix.cpp)
+#file( GLOB SOURCE_FILES src/*.cpp )
 
 # Create the executable
 add_executable(PDS ${SOURCE_FILES})
 
-add_subdirectory(lib/OpenBLAS/)
-
 # Link the OpenBlas library to the target
+# See for static linking : https://stackoverflow.com/a/48966279/15249616
 target_link_libraries(PDS openblas${SUFFIX64_UNDERSCORE})
