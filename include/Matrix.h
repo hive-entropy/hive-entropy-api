@@ -13,7 +13,7 @@ namespace MatrixArchetype{
 template<typename T>
 class Matrix{
 
-    static_assert(std::is_arithmetic<NumericType>::value, "Matrix cannot be instantiated with a non-numeric type");
+    static_assert(std::is_arithmetic<T>::value, "Matrix cannot be instantiated with a non-numeric type");
 
     private:
         int rows;
@@ -24,7 +24,7 @@ class Matrix{
 
     public:
         explicit Matrix(int rows, int columns, T* data);
-        Matrix(int rows, int columns, char archetype);
+        Matrix(int rows, int columns, char archetype=MatrixArchetype::ZEROS);
         Matrix(const Matrix& m);
         ~Matrix();
 
