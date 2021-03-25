@@ -23,7 +23,7 @@ include_directories(include)
 # Set the list of source files
 # Source files should be added manually (or by the IDE), not automatically detected
 # For details : https://stackoverflow.com/a/57928919/15249616
-set(SOURCE_FILES src/main.cpp src/Matrix.cpp)
+set(SOURCE_FILES src/main.cpp)
 #file( GLOB SOURCE_FILES src/*.cpp )
 
 # Create the executable

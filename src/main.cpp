@@ -11,5 +11,6 @@ int main(){
 
     char tab2[] = {'a','b','c','d','e','f','g','h','i'};
     Matrix<char> b(3,3,tab2);
+    
     return 0;
 }
