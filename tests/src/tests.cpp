@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <string>
-
 #include "../include/catch.hpp"
 #include "../../heapi/include/Matrix.h"
 

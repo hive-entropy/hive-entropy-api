@@ -16,7 +16,7 @@ include_directories(include)
 #include_directories(lib)
 
 # Create the executable
-add_library(heapi SHARED src/what.cpp)
+add_library(heapi STATIC src/what.cpp)
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
@@ -25,12 +25,14 @@ target_link_libraries(heapi openblas${SUFFIX64_UNDERSCORE})
 set_target_properties(
     heapi PROPERTIES
     VERSION 0.1
-    SOVERSION 1
-    PUBLIC_HEADER include/hive_entropy.h
 )
 
 install(
     TARGETS heapi
-    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+    LIBRARY
+)
+
+install(
+    DIRECTORY include/ DESTINATION include/hive_entropy
+        FILES_MATCHING PATTERN "*.h"
 )
