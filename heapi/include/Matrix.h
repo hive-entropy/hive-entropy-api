@@ -6,6 +6,8 @@
 #include <malloc.h>
 #include <cblas.h>
 
+void something();
+
 namespace MatrixArchetype{
     static const char ZEROS = '0';
     static const char ONES = '1';
