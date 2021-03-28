@@ -1,6 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#define ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
+
 #include <iostream>
 #include <type_traits>
 #include <malloc.h>
@@ -14,9 +16,11 @@ namespace MatrixArchetype{
     static const char ID = 'I';
 }
 
-
 template<typename T>
 class Matrix{
+
+    static_assert(std::is_arithmetic<T>::value, "The Matrix type must be an arithmetic type");
+
     private:
         int rows;
         int columns;
@@ -33,6 +37,7 @@ class Matrix{
         void putColumn(int j, T* elems);
         void putRow(int i, T* elems);
         void put(int i, int j, T elem);
+
         void putSubmatrix(int startRow, int startColumn, Matrix const& m);
 
         T get(int i, int j);
@@ -101,6 +106,93 @@ Matrix<T>::Matrix(const Matrix& m){
     for (int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
             data[columns*i+j] = m.data[m.columns*i+j];
+}
+
+template<typename T>
+void Matrix<T>::putColumn(int j, T* elems){
+    if(j<0||j>=columns||ARRAY_SIZE(elems)!=rows)
+        throw "Whatever";
+    for(int i=0;i<rows;i++)
+        data[columns*i+j] = elems[i];
+}
+
+template<typename T>
+void Matrix<T>::putRow(int i, T* elems){
+    if(i<0||i>=rows||ARRAY_SIZE(elems)!=columns)
+        throw "Whatever";
+    for(int j=0;j<columns;j++)
+        data[columns*i+j] = elems[j];
+}
+
+
+template<typename T>
+void Matrix<T>::put(int i, int j, T elem){
+    if(i<0||i>=rows||j<0||j>=columns)
+        throw "Whatever";
+    data[columns*i+j] = elem;
+}
+
+template<typename T>
+void Matrix<T>::putSubmatrix(int startRow, int startColumn, Matrix const& m){
+    if(startColumn+m.columns>=columns||startRow+m.rows>=rows)
+        throw "Whatever";
+    for(int i=startRow;i<m.rows+startRow;i++){
+        for(int j=startColumn;j<m.columns+startColumn;j++){
+            data[columns*i+j] = static_cast<T>(m.data[m.columns*i+j]);
+        }
+    }
+}
+
+template<typename T>
+T Matrix<T>::get(int i, int j){
+    if(i<0||i>=rows||j<0||j>=columns)
+        throw "Whatever";
+    return data[columns*i+j];
+}
+
+template<typename T>
+T* Matrix<T>::getRow(int i){
+    if(i<0||i>=rows)
+        throw "Whatever";
+    T* res = (T*) malloc(columns*sizeof(T));
+    for(int j=0;j<columns;j++)
+        res[j] = data[columns*i+j];
+    return res;
+}
+
+template<typename T>
+T* Matrix<T>::getColumn(int j){
+    if(j<0||j>=columns)
+        throw "Whatever";
+    T* res = (T*) malloc(rows*sizeof(T));
+    for(int i=0;i<rows;i++)
+        res[i] = data[columns*i+j];
+    return res;
+}
+
+template<typename T>
+T* Matrix<T>::getData(){
+    return data;
+}
+
+template<typename T>
+int Matrix<T>::getRows(){
+    return rows;
+}
+
+template<typename T>
+int Matrix<T>::getColumns(){
+    return columns;
+}
+
+template<typename T>
+int Matrix<T>::getType(){
+    return type;
+}
+
+template<typename T>
+int Matrix<T>::getElements(){
+    return elements;
 }
 
 #endif
