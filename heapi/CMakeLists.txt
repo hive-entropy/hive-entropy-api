@@ -8,6 +8,7 @@ set(CMAKE_C_FLAGS "-lpthread -Wall -g ")
 
 # Add the library project to be build
 add_subdirectory(lib/OpenBLAS/)
+add_subdirectory(lib/libcoap/)
 
 # Set in which directories cmake will search for headers
 include_directories(include)
@@ -20,7 +21,10 @@ add_library(heapi STATIC src/what.cpp)
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
-target_link_libraries(heapi openblas${SUFFIX64_UNDERSCORE})
+target_link_libraries(heapi 
+    openblas${SUFFIX64_UNDERSCORE}
+    coap-2
+)
 
 set_target_properties(
     heapi PROPERTIES
