@@ -1,1 +1,6 @@
 #include "Matrix.h"
+#include "CoapEndpoint.h"
+#include "HiveEntropyNode.h"
+#include "HiveEntropyNodeInterface.h"
+#include "Message.h"
+#include "ResponseBuilder.h"
