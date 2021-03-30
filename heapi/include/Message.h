@@ -19,6 +19,11 @@ class Message{
         void addHeader(string key, string val);
         void setType(string type);
 
+        string getDest();
+        string getOrigin();
+        vector<string,string> getHeaders();
+        string getType();
+
     private:
         string origin;
         string dest;
