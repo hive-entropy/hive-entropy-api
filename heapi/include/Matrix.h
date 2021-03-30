@@ -39,6 +39,7 @@ class Matrix{
         void put(int i, int j, T elem);
 
         void putSubmatrix(int startRow, int startColumn, Matrix const& m);
+        Matrix getSubmatrix(int startRow, int startColumn, int endRow, int endColumn);
 
         T get(int i, int j);
         T* getRow(int i);
@@ -141,6 +142,19 @@ void Matrix<T>::putSubmatrix(int startRow, int startColumn, Matrix const& m){
             data[columns*i+j] = static_cast<T>(m.data[m.columns*i+j]);
         }
     }
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::getSubmatrix(int startRow, int startColumn,int endRow, int endColumn){
+    if(startColumn<0||startColumn>columns||endColumn<startColumn||endColumn<columns||startRow<0||startRow>rows||startRow>endRow||endRow>rows||endRow<0)
+        throw "Whatever";
+    Matrix<T> res(endRow-startRow,endColumn-startColumn);
+    for(int i=startRow;i<=endRow;i++){
+        for(int j=startColumn;j<=endColumn;j++){
+            res.put(i,j,data[columns*i+j]);
+        }
+    }
+    return res;
 }
 
 template<typename T>
