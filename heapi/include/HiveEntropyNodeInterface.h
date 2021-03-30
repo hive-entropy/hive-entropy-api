@@ -10,14 +10,30 @@
 
 using namespace std;
 
+/**
+ * @brief Class representation of an Node (Worker or Captain) in the Hive Entropy network 
+ */
 class HiveEntropyNodeInterface{
     public:
-        //Lifecycle methods
-        HiveEntropyNodeInterface();
+        
+        /**
+         * Constructor for the Node.
+         * @param uri The uri to use as a root for this Node.
+        */
+        HiveEntropyNodeInterface(string uri);
+
+        /**
+         * Destructor for the Node.
+         */
         ~HiveEntropyNodeInterface();
 
-        //Generic send
-        virtual void send(string uri, Message message);
+        /**
+         * @brief Used to send a Message on the network. 
+         *
+         * Intended to be used by users that master the application-level protocol.
+         * @param message The message object to be sent.
+         */
+        virtual void send(Message message);
 
         //Specialized sends
         template<typename T>
@@ -31,13 +47,13 @@ class HiveEntropyNodeInterface{
         virtual vector<string> resolveNodes();
 
         //Response and new message handlers
-        virtual void registerResponseHandler(void  (*func)(string origin,Message message));
-        virtual void registerMessageHandler(Message  (*func)(string origin,Message message));
+        virtual void registerResponseHandler(string key, void  (*func)(string origin,Message message));
+        virtual void registerMessageHandler(string key, Message  (*func)(string origin,Message message));
 
     private:
         string uri;
-        vector<void  (*)(string origin,Message message)> responseHandlers;
-        vector<Message  (*)(string origin,Message message)> messageHandlers;
+        vector<string,void  (*)(string origin,Message message)> responseHandlers;
+        vector<string,Message  (*)(string origin,Message message)> messageHandlers;
         CoapEndpoint coap;
 };
 
