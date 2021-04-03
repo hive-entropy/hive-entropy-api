@@ -116,6 +116,19 @@ class Message{
          */
         MessageType getType();
 
+        /**
+         * @brief Get the Content of the message.
+         * 
+         * @return string the content of the message.
+         */
+        string getContent();
+
+        /**
+         * @brief Set the Content oof the message.
+         * 
+         * @param content the content to put in the message.
+         */
+        void setContent(string content);
     private:
         string origin;
         string dest;
