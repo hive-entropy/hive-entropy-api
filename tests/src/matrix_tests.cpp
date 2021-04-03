@@ -107,8 +107,8 @@ SCENARIO("We should be able to create a Matrix and access its elements","[matrix
                 Matrix<int> sub = a.getSubmatrix(0,1,2,2);
 
                 REQUIRE(sub.get(0,0)==1);
-                REQUIRE(sub.get(0,1)==2);
-                REQUIRE(sub.get(0,2)==3);
+                REQUIRE(sub.get(1,0)==2);
+                REQUIRE(sub.get(2,0)==3);
             }
         }
 
@@ -118,8 +118,8 @@ SCENARIO("We should be able to create a Matrix and access its elements","[matrix
 
             THEN("We should be able to access the new elements individually"){
                 REQUIRE(a.get(1,0)==1);
-                REQUIRE(a.get(1,0)==2);
-                REQUIRE(a.get(1,0)==3);
+                REQUIRE(a.get(1,1)==2);
+                REQUIRE(a.get(1,2)==3);
             }
 
             THEN("We should be able to access the new elements in the row"){
@@ -141,7 +141,7 @@ SCENARIO("We should be able to create a Matrix and access its elements","[matrix
             }
 
             THEN("We should be able to access the new elements in a submatrix"){
-                Matrix<int> sub = a.getSubmatrix(0,1,2,2);
+                Matrix<int> sub = a.getSubmatrix(1,0,2,2);
 
                 REQUIRE(sub.get(0,0)==1);
                 REQUIRE(sub.get(0,1)==2);
@@ -261,9 +261,255 @@ SCENARIO("We should be able to create a Matrix and access its elements","[matrix
 }
 
 SCENARIO("We should be able to do mathematical operations on matrices","[matrix-math]"){
-    //...
+    GIVEN("Two matrices of int"){
+        int tabA[] = {1,2,3,4,5,6,7,8,9};
+        int tabB[] = {23,56,21,78,99,456,856,3,-45};
+        Matrix<int> a(3,3,tabA);
+        Matrix<int> b(3,3,MatrixArchetype::ONES);
+
+        WHEN("We add them together in a third matrix"){
+
+            Matrix<int> c = a + b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(c.get(0,0)==a.get(0,0)+b.get(0,0));
+                REQUIRE(c.get(0,1)==a.get(0,1)+b.get(0,1));
+                REQUIRE(c.get(0,2)==a.get(0,2)+b.get(0,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)+b.get(1,0));
+                REQUIRE(c.get(1,1)==a.get(1,1)+b.get(1,1));
+                REQUIRE(c.get(1,2)==a.get(1,2)+b.get(1,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)+b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,1)+b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,2)+b.get(2,2));
+            }
+        }
+
+        WHEN("We subtract them in a third matrix"){
+            Matrix<int> c = a - b;
+
+            THEN("Their elements should be subtracted"){
+                REQUIRE(c.get(0,0)==a.get(0,0)-b.get(0,0));
+                REQUIRE(c.get(0,1)==a.get(0,1)-b.get(0,1));
+                REQUIRE(c.get(0,2)==a.get(0,2)-b.get(0,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)-b.get(1,0));
+                REQUIRE(c.get(1,1)==a.get(1,1)-b.get(1,1));
+                REQUIRE(c.get(1,2)==a.get(1,2)-b.get(1,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)-b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,1)-b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,2)-b.get(2,2));
+            }
+        }
+
+        WHEN("We multiplay them in a third matrix"){
+
+            Matrix<int> c = a*b;
+
+            THEN("Their elements should equate"){
+                REQUIRE(c.get(0,0)==a.get(0,0)*b.get(0,0)+a.get(0,1)*b.get(1,0)+a.get(0,2)*b.get(2,0));
+                REQUIRE(c.get(0,1)==a.get(0,0)*b.get(0,1)+a.get(0,1)*b.get(1,1)+a.get(0,2)*b.get(2,1));
+                REQUIRE(c.get(0,2)==a.get(0,0)*b.get(0,2)+a.get(0,1)*b.get(1,2)+a.get(0,2)*b.get(2,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)*b.get(0,0)+a.get(1,1)*b.get(1,0)+a.get(1,2)*b.get(2,0));
+                REQUIRE(c.get(1,1)==a.get(1,0)*b.get(0,1)+a.get(1,1)*b.get(1,1)+a.get(1,2)*b.get(2,1));
+                REQUIRE(c.get(1,2)==a.get(1,0)*b.get(0,2)+a.get(1,1)*b.get(1,2)+a.get(1,2)*b.get(2,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)*b.get(0,0)+a.get(2,1)*b.get(1,0)+a.get(2,2)*b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,0)*b.get(0,1)+a.get(2,1)*b.get(1,1)+a.get(2,2)*b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,0)*b.get(0,2)+a.get(2,1)*b.get(1,2)+a.get(2,2)*b.get(2,2));
+            }
+        }
+
+        WHEN("We add them and put the result in the first operand"){
+            Matrix<int> c(a);
+            a += b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(a.get(0,0)==c.get(0,0)+b.get(0,0));
+                REQUIRE(a.get(0,1)==c.get(0,1)+b.get(0,1));
+                REQUIRE(a.get(0,2)==c.get(0,2)+b.get(0,2));
+                REQUIRE(a.get(1,0)==c.get(1,0)+b.get(1,0));
+                REQUIRE(a.get(1,1)==c.get(1,1)+b.get(1,1));
+                REQUIRE(a.get(1,2)==c.get(1,2)+b.get(1,2));
+                REQUIRE(a.get(2,0)==c.get(2,0)+b.get(2,0));
+                REQUIRE(a.get(2,1)==c.get(2,1)+b.get(2,1));
+                REQUIRE(a.get(2,2)==c.get(2,2)+b.get(2,2));
+            }
+        }
+
+        WHEN("We subtract them and put the result in the first operand"){
+            Matrix<int> c(a);
+            a -= b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(a.get(0,0)==c.get(0,0)-b.get(0,0));
+                REQUIRE(a.get(0,1)==c.get(0,1)-b.get(0,1));
+                REQUIRE(a.get(0,2)==c.get(0,2)-b.get(0,2));
+                REQUIRE(a.get(1,0)==c.get(1,0)-b.get(1,0));
+                REQUIRE(a.get(1,1)==c.get(1,1)-b.get(1,1));
+                REQUIRE(a.get(1,2)==c.get(1,2)-b.get(1,2));
+                REQUIRE(a.get(2,0)==c.get(2,0)-b.get(2,0));
+                REQUIRE(a.get(2,1)==c.get(2,1)-b.get(2,1));
+                REQUIRE(a.get(2,2)==c.get(2,2)-b.get(2,2));
+            }
+        }
+
+        WHEN("We multiply them and put the result in the first operand"){
+            Matrix<int> c(a);
+
+            c*=b;
+
+             THEN("Their elements should equate"){
+                REQUIRE(c.get(0,0)==a.get(0,0)*b.get(0,0)+a.get(0,1)*b.get(1,0)+a.get(0,2)*b.get(2,0));
+                REQUIRE(c.get(0,1)==a.get(0,0)*b.get(0,1)+a.get(0,1)*b.get(1,1)+a.get(0,2)*b.get(2,1));
+                REQUIRE(c.get(0,2)==a.get(0,0)*b.get(0,2)+a.get(0,1)*b.get(1,2)+a.get(0,2)*b.get(2,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)*b.get(0,0)+a.get(1,1)*b.get(1,0)+a.get(1,2)*b.get(2,0));
+                REQUIRE(c.get(1,1)==a.get(1,0)*b.get(0,1)+a.get(1,1)*b.get(1,1)+a.get(1,2)*b.get(2,1));
+                REQUIRE(c.get(1,2)==a.get(1,0)*b.get(0,2)+a.get(1,1)*b.get(1,2)+a.get(1,2)*b.get(2,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)*b.get(0,0)+a.get(2,1)*b.get(1,0)+a.get(2,2)*b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,0)*b.get(0,1)+a.get(2,1)*b.get(1,1)+a.get(2,2)*b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,0)*b.get(0,2)+a.get(2,1)*b.get(1,2)+a.get(2,2)*b.get(2,2));
+            }
+        }
+    }
+
+    GIVEN("Two matrices of double"){
+        double tabA[] = {1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0};
+        double tabB[] = {23.0,56.0,21.0,78.0,99.0,456.0,856.0,3.0,-45.0};
+        Matrix<double> a(3,3,tabA);
+        Matrix<double> b(3,3,MatrixArchetype::ONES);
+
+        WHEN("We add them together in a third matrix"){
+
+            Matrix<double> c = a + b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(c.get(0,0)==a.get(0,0)+b.get(0,0));
+                REQUIRE(c.get(0,1)==a.get(0,1)+b.get(0,1));
+                REQUIRE(c.get(0,2)==a.get(0,2)+b.get(0,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)+b.get(1,0));
+                REQUIRE(c.get(1,1)==a.get(1,1)+b.get(1,1));
+                REQUIRE(c.get(1,2)==a.get(1,2)+b.get(1,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)+b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,1)+b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,2)+b.get(2,2));
+            }
+        }
+
+        WHEN("We subtract them in a third matrix"){
+            Matrix<double> c = a - b;
+
+            THEN("Their elements should be subtracted"){
+                REQUIRE(c.get(0,0)==a.get(0,0)-b.get(0,0));
+                REQUIRE(c.get(0,1)==a.get(0,1)-b.get(0,1));
+                REQUIRE(c.get(0,2)==a.get(0,2)-b.get(0,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)-b.get(1,0));
+                REQUIRE(c.get(1,1)==a.get(1,1)-b.get(1,1));
+                REQUIRE(c.get(1,2)==a.get(1,2)-b.get(1,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)-b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,1)-b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,2)-b.get(2,2));
+            }
+        }
+
+        WHEN("We multiplay them in a third matrix"){
+
+            Matrix<double> c = a*b;
+
+            THEN("Their elements should equate"){
+                REQUIRE(c.get(0,0)==a.get(0,0)*b.get(0,0)+a.get(0,1)*b.get(1,0)+a.get(0,2)*b.get(2,0));
+                REQUIRE(c.get(0,1)==a.get(0,0)*b.get(0,1)+a.get(0,1)*b.get(1,1)+a.get(0,2)*b.get(2,1));
+                REQUIRE(c.get(0,2)==a.get(0,0)*b.get(0,2)+a.get(0,1)*b.get(1,2)+a.get(0,2)*b.get(2,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)*b.get(0,0)+a.get(1,1)*b.get(1,0)+a.get(1,2)*b.get(2,0));
+                REQUIRE(c.get(1,1)==a.get(1,0)*b.get(0,1)+a.get(1,1)*b.get(1,1)+a.get(1,2)*b.get(2,1));
+                REQUIRE(c.get(1,2)==a.get(1,0)*b.get(0,2)+a.get(1,1)*b.get(1,2)+a.get(1,2)*b.get(2,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)*b.get(0,0)+a.get(2,1)*b.get(1,0)+a.get(2,2)*b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,0)*b.get(0,1)+a.get(2,1)*b.get(1,1)+a.get(2,2)*b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,0)*b.get(0,2)+a.get(2,1)*b.get(1,2)+a.get(2,2)*b.get(2,2));
+            }
+        }
+
+        WHEN("We add them and put the result in the first operand"){
+            Matrix<double> c(a);
+            a += b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(a.get(0,0)==c.get(0,0)+b.get(0,0));
+                REQUIRE(a.get(0,1)==c.get(0,1)+b.get(0,1));
+                REQUIRE(a.get(0,2)==c.get(0,2)+b.get(0,2));
+                REQUIRE(a.get(1,0)==c.get(1,0)+b.get(1,0));
+                REQUIRE(a.get(1,1)==c.get(1,1)+b.get(1,1));
+                REQUIRE(a.get(1,2)==c.get(1,2)+b.get(1,2));
+                REQUIRE(a.get(2,0)==c.get(2,0)+b.get(2,0));
+                REQUIRE(a.get(2,1)==c.get(2,1)+b.get(2,1));
+                REQUIRE(a.get(2,2)==c.get(2,2)+b.get(2,2));
+            }
+        }
+
+        WHEN("We subtract them and put the result in the first operand"){
+            Matrix<double> c(a);
+            a -= b;
+
+            THEN("Their elements should be summed"){
+                REQUIRE(a.get(0,0)==c.get(0,0)-b.get(0,0));
+                REQUIRE(a.get(0,1)==c.get(0,1)-b.get(0,1));
+                REQUIRE(a.get(0,2)==c.get(0,2)-b.get(0,2));
+                REQUIRE(a.get(1,0)==c.get(1,0)-b.get(1,0));
+                REQUIRE(a.get(1,1)==c.get(1,1)-b.get(1,1));
+                REQUIRE(a.get(1,2)==c.get(1,2)-b.get(1,2));
+                REQUIRE(a.get(2,0)==c.get(2,0)-b.get(2,0));
+                REQUIRE(a.get(2,1)==c.get(2,1)-b.get(2,1));
+                REQUIRE(a.get(2,2)==c.get(2,2)-b.get(2,2));
+            }
+        }
+
+        WHEN("We multiply them and put the result in the first operand"){
+            Matrix<double> c(a);
+
+            c*=b;
+
+             THEN("Their elements should equate"){
+                REQUIRE(c.get(0,0)==a.get(0,0)*b.get(0,0)+a.get(0,1)*b.get(1,0)+a.get(0,2)*b.get(2,0));
+                REQUIRE(c.get(0,1)==a.get(0,0)*b.get(0,1)+a.get(0,1)*b.get(1,1)+a.get(0,2)*b.get(2,1));
+                REQUIRE(c.get(0,2)==a.get(0,0)*b.get(0,2)+a.get(0,1)*b.get(1,2)+a.get(0,2)*b.get(2,2));
+                REQUIRE(c.get(1,0)==a.get(1,0)*b.get(0,0)+a.get(1,1)*b.get(1,0)+a.get(1,2)*b.get(2,0));
+                REQUIRE(c.get(1,1)==a.get(1,0)*b.get(0,1)+a.get(1,1)*b.get(1,1)+a.get(1,2)*b.get(2,1));
+                REQUIRE(c.get(1,2)==a.get(1,0)*b.get(0,2)+a.get(1,1)*b.get(1,2)+a.get(1,2)*b.get(2,2));
+                REQUIRE(c.get(2,0)==a.get(2,0)*b.get(0,0)+a.get(2,1)*b.get(1,0)+a.get(2,2)*b.get(2,0));
+                REQUIRE(c.get(2,1)==a.get(2,0)*b.get(0,1)+a.get(2,1)*b.get(1,1)+a.get(2,2)*b.get(2,1));
+                REQUIRE(c.get(2,2)==a.get(2,0)*b.get(0,2)+a.get(2,1)*b.get(1,2)+a.get(2,2)*b.get(2,2));
+            }
+        }
+    }
 }
 
 SCENARIO("We should be able to compare matrices","[matrix-logic]"){
-    //...
+    GIVEN("A matrix of int"){
+        int tab[] = {1,2,3,4,5,6,7,8,9,10,11,12};
+        Matrix<int> a(3,4,tab);
+
+        WHEN("We copy it in a second matrix"){
+            Matrix<int> b(a);
+
+            THEN("The two matrices should be compared as equal"){
+                REQUIRE(a==b);
+                REQUIRE_FALSE(a!=b);
+            }
+        }
+
+        WHEN("We use the same array to build another matrix of the same dimensions"){
+            Matrix<int> b(3,4,tab);
+
+            THEN("The two matrices should be compared as equal"){
+                REQUIRE(a==b);
+                REQUIRE_FALSE(a!=b);
+            }
+        }
+
+        WHEN("We use the same array to build another matrix of different dimensions"){
+            Matrix<int> b(2,6,tab);
+
+            THEN("The two matrices should be compared as not equal"){
+                REQUIRE_FALSE(a==b);
+                REQUIRE(a!=b);
+            }
+        }
+    }
 }
