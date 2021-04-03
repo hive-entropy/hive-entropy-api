@@ -17,7 +17,7 @@ include_directories(include)
 #include_directories(lib)
 
 # Create the executable
-add_library(heapi STATIC src/what.cpp)
+add_library(heapi STATIC src/IncompatibleDimensionsException.cpp src/OutOfBoundException.cpp)
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
