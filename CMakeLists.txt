@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(HiveEntropyAPI)
+project(HiveEntropyAPI VERSION 0.1.1 LANGUAGES CXX)
 
 add_subdirectory(heapi)
 add_subdirectory(tests)
