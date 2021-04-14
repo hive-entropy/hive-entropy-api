@@ -2,16 +2,15 @@
 #define MESSAGE_H
 
 #include <string>
-#include <vector>
+#include <map>
 
 #include "Matrix.h"
-#include "../lib/libcoap/include/coap2/pdu.h"
+#include "../lib/libcoap/include/coap2/coap.h.in"
 
 using namespace std;
 
 /**
  * @brief Represents an application-level message that can transit through the network.
- * 
  */
 class Message{
     public:
@@ -19,7 +18,7 @@ class Message{
         /**
          * @brief An enumeration of possible headers for a message to use.
          */
-        enum Headers {
+        enum Headers{
             PURPOSE,
             CALCULATION_ID,
             TASK_ID,
@@ -43,6 +42,17 @@ class Message{
         };
 
         /**
+         * @brief An enumeration of supported HTTP Methods.
+         * 
+         */
+        enum HttpMethod{
+            GET,
+            POST,
+            PUT,
+            DELETE
+        };
+
+        /**
          * @brief Construct a new Message object.
          */
         Message();
@@ -57,7 +67,7 @@ class Message{
          * 
          * @return coap_pdu_t the structure that will eventually be sent through the network.
          */
-        coap_pdu_t toCoapMessage();
+        coap_pdu_t* toCoapMessage(coap_session_t* sess);
 
         /**
          * @brief Set the destination of the Message.
@@ -65,13 +75,6 @@ class Message{
          * @param dest the destination.
          */
         void setDest(string dest);
-
-        /**
-         * @brief Set the origin of the message.
-         * 
-         * @param origin the origin.
-         */
-        void setOrigin(string origin);
 
         /**
          * @brief Adds a header attribute to the message.
@@ -96,18 +99,11 @@ class Message{
         string getDest();
 
         /**
-         * @brief Get the origin of the message.
-         * 
-         * @return string the origin of the message.
-         */
-        string getOrigin();
-
-        /**
          * @brief Get the headers of the message.
          * 
          * @return vector<Headers, string> A map between headers and their values.
          */
-        vector<Headers,string> getHeaders();
+        map<Headers,string> getHeaders();
 
         /**
          * @brief Get the type of the message.
@@ -129,12 +125,16 @@ class Message{
          * @param content the content to put in the message.
          */
         void setContent(string content);
+
+        void setHttpMethod(HttpMethod m);
+
+        HttpMethod getHttpMethod();
     private:
-        string origin;
         string dest;
-        vector<string,string> headers;
+        HttpMethod httpMethod;
+        map<Headers,string> headers;
         string content;
-        string type;
+        MessageType type;
 };
 
 #endif

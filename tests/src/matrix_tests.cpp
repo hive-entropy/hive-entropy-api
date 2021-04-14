@@ -5,7 +5,7 @@
 
 using namespace std;
 
-SCENARIO("We should be able to create a Matrix and access its elements","[matrix-creation]"){
+SCENARIO("We should be able to create a Matrix and access its elements","[matrix]"){
     GIVEN("A matrix of int defined using an array"){
         int tab[] = {1,2,3,4,5,6,7,8,9};
         Matrix<int> a(3,3,tab);
