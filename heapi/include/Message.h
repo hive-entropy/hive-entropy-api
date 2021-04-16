@@ -9,6 +9,8 @@
 
 using namespace std;
 
+//TODO Add method to create from PDU
+
 /**
  * @brief Represents an application-level message that can transit through the network.
  */
@@ -56,6 +58,20 @@ class Message{
          * @brief Construct a new Message object.
          */
         Message();
+
+        /**
+         * @brief Construct a new Message object from a CoAP PDU structure.
+         * 
+         * @param pdu The pdu structure of the message.
+         */
+        Message(coap_pdu_t const& pdu);
+
+        /**
+         * @brief Sends a response for the given message.
+         * 
+         * @param m The message to send as a response. The destination and origin will be set according to the original message.
+         */
+        void respond(Message m);
 
         /**
          * @brief Destroy the Message object
