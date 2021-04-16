@@ -54,8 +54,10 @@ find_package(Threads REQUIRED)
 
 add_library(HiveEntropyAPI
         STATIC
-        src/IncompatibleDimensionsException.cpp
+        src/IncompatibleDimensionsException.cpp 
         src/OutOfBoundException.cpp
+        src/Message.cpp
+        src/CoapEndpoint.cpp
         )
 
 # Set in which directories cmake will search for headers
@@ -68,7 +70,6 @@ target_include_directories(HiveEntropyAPI
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
-
 # Set the compiler to use C++11
 target_compile_features(HiveEntropyAPI
         PRIVATE cxx_std_11
