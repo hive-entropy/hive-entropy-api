@@ -62,9 +62,11 @@ class Message{
         /**
          * @brief Construct a new Message object from a CoAP PDU structure.
          * 
+         * @param session The current session.
          * @param pdu The pdu structure of the message.
+         * @param token The optional token to use.
          */
-        Message(coap_pdu_t const& pdu);
+        Message(coap_session_t* sess, coap_pdu_t* pdu, coap_binary_t* token=nullptr);
 
         /**
          * @brief Destroy the Message object
