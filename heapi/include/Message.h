@@ -67,13 +67,6 @@ class Message{
         Message(coap_pdu_t const& pdu);
 
         /**
-         * @brief Sends a response for the given message.
-         * 
-         * @param m The message to send as a response. The destination and origin will be set according to the original message.
-         */
-        void respond(Message m);
-
-        /**
          * @brief Destroy the Message object
          */
         ~Message();
