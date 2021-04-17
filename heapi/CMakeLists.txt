@@ -8,6 +8,8 @@
 # https://stackoverflow.com/questions/51564251/correct-way-to-use-third-party-libraries-in-cmake-project
 # FetchContent usage for GitHub libraries:
 # https://medium.com/analytics-vidhya/c-dependency-management-with-cmakes-fetchcontent-4ceca4693a5d
+# Handle dependencies externally:
+# https://stackoverflow.com/a/27530173/15249616
 
 # Use CMake to build, install and export a library:
 # https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/
@@ -22,32 +24,10 @@
 ##############################################
 # External project dependencies
 
-include(FetchContent)
-
-FetchContent_Declare(OpenBLAS
-        GIT_REPOSITORY git@github.com:xianyi/OpenBLAS.git
-        GIT_TAG 2f6d35c3d462c996b6504cc0ddc2722e36dd2a71
-        GIT_PROGRESS ON
-        )
-
-FetchContent_Declare(libcoap
-        GIT_REPOSITORY git@github.com:obgm/libcoap.git
-        GIT_TAG 4cab59dbbf3048e44220ff2e7d6b36284b3ef131
-        GIT_PROGRESS ON
-        )
-
-# Disable the CMP0048 policy warning
-file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EnableCMP0048.cmake" "cmake_policy(SET CMP0048 NEW)")
-set(CMAKE_PROJECT_INCLUDE_BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/EnableCMP0048.cmake")
-
-FetchContent_MakeAvailable(OpenBLAS libcoap) # Make the libs available
-
-unset(CMAKE_PROJECT_INCLUDE_BEFORE)
-
 ##############################################
 # Find system dependencies
-set(CMAKE_THREAD_PREFER_PTHREAD ON)
-find_package(Threads REQUIRED)
+find_package(OpenBLAS REQUIRED)
+find_package(libcoap REQUIRED)
 
 ##############################################
 # Create target and set properties
@@ -59,6 +39,9 @@ add_library(HiveEntropyAPI
         src/Message.cpp
         src/CoapEndpoint.cpp
         )
+
+# Add an alias so that library can be used inside the build tree, e.g. when testing
+add_library(HiveEntropyAPI::HiveEntropyAPI ALIAS HiveEntropyAPI)
 
 # Set in which directories cmake will search for headers
 # PUBLIC headers should be put in include directory.
@@ -83,11 +66,13 @@ target_compile_options(HiveEntropyAPI
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
 target_link_libraries(HiveEntropyAPI
-    PRIVATE OpenBLAS libcoap Threads::Threads
+        PRIVATE OpenBLAS::OpenBLAS libcoap::coap-2
 )
 
 ##############################################
 # Installation instructions
+
+# TODO: Add lib targets to install ?
 
 # Make cache variables for install destinations
 include(GNUInstallDirs)
@@ -99,7 +84,7 @@ install(TARGETS HiveEntropyAPI
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # Static library
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # Shared library
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+        )
 
 # Install header files
 file(GLOB_RECURSE PUBLIC_HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h*")

@@ -30,6 +30,31 @@ Cette bibliothèque étant le coeur de notre projet, elle permet de couvrir à d
 
 Tous les aspects de programmation concurrente, réseau/protocoles, découpage des tâches, décision des noeuds à utiliser et de l'ordre des calculs sont pris en charge par l'implémentation de la bibliothèque.
 
+## Installation
+
+### Dépendances
+#### OpenBLAS
+```
+git clone --depth 1 --branch v0.3.14 git@github.com:xianyi/OpenBLAS.git
+cd OpenBLAS/
+cmake -E make_directory build
+cd build
+cmake ..
+cmake --build .
+[sudo] cmake --install .
+```
+
+#### Libcoap
+```
+git clone --depth 1 --branch v4.3.0-rc1 git@github.com:obgm/libcoap.git
+cd libcoap/
+cmake -E make_directory build
+cd build
+cmake .. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OFF
+cmake --build .
+[sudo] cmake --install .
+```
+
 ## Utilisation
 
 **TODO** Décrire la compilation, l'installation, et les étapes à réaliser pour pouvoir utiliser la bibliothèque
