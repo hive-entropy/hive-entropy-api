@@ -1,4 +1,4 @@
-#include "../include/IncompatibleDimensionsException.h"
+#include "IncompatibleDimensionsException.h"
 
 std::ostream& operator<<(std::ostream& os, IncompatibleDimensionsException& ex){
     switch(ex.op){

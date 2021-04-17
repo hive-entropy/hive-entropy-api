@@ -5,7 +5,8 @@
 #include <string>
 #include <map>
 
-#include "../lib/libcoap/include/coap2/coap.h.in"
+#include <coap2/coap.h>
+
 #include "Message.h"
 
 class CoapEndpoint{

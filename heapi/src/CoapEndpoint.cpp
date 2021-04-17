@@ -1,4 +1,4 @@
-#include "../include/CoapEndpoint.h"
+#include "CoapEndpoint.h"
 
 #include <iostream>
 #include <time.h>
