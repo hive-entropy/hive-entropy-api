@@ -9,8 +9,6 @@
 
 using namespace std;
 
-//TODO Add method to create from PDU
-
 /**
  * @brief Represents an application-level message that can transit through the network.
  */
@@ -30,7 +28,8 @@ class Message{
             STEPS,
             ELEMENT_TYPE,
             PROXY_URI,
-            HTTP_CODE
+            ENCODING_TYPE,
+            SERIALIZED_TYPE
         };
 
         /**
@@ -66,7 +65,7 @@ class Message{
          * @param pdu The pdu structure of the message.
          * @param token The optional token to use.
          */
-        Message(coap_session_t* sess, coap_pdu_t* pdu, coap_binary_t* token=nullptr);
+        Message(coap_session_t* sess, coap_pdu_t* pdu);
 
         /**
          * @brief Destroy the Message object

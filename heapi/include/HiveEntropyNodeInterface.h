@@ -8,6 +8,8 @@
 #include "Matrix.h"
 #include "CoapEndpoint.h"
 #include "Message.h"
+#include "Row.h"
+#include "Column.h"
 
 using namespace std;
 
