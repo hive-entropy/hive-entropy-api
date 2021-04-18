@@ -9,50 +9,55 @@
 
 using namespace std;
 
-/**
- * @brief Represents an application-level message that can transit through the network.
- */
-class Message{
-    public:
 
-        /**
+ /**
          * @brief An enumeration of possible headers for a message to use.
          */
-        enum Headers{
-            PURPOSE,
-            CALCULATION_ID,
-            TASK_ID,
-            INSERT_AT_X,
-            INSERT_AT_Y,
-            BORDER_SIZE,
-            STEPS,
-            ELEMENT_TYPE,
-            PROXY_URI,
-            ENCODING_TYPE,
-            SERIALIZED_TYPE
+        enum class Headers : int{
+            PURPOSE=1,
+            CALCULATION_ID=2,
+            TASK_ID=3,
+            INSERT_AT_X=4,
+            INSERT_AT_Y=5,
+            BORDER_SIZE=6,
+            STEPS=7,
+            ELEMENT_TYPE=8,
+            PROXY_URI=9,
+            ENCODING_TYPE=10,
+            SERIALIZED_TYPE=11,
+            ASSISTANCE_RESPONSE=12
         };
 
         /**
          * @brief An enumeration of possible message types as defined in RFC 7252.
          */
-        enum MessageType{
-            CONFIRMABLE,
-            NON_CONFIRMABLE,
-            ACK,
-            RESET
+        enum class MessageType : int{
+            CONFIRMABLE=1,
+            NON_CONFIRMABLE=2,
+            ACK=3,
+            RESET=4
         };
 
         /**
          * @brief An enumeration of supported HTTP Methods.
          * 
          */
-        enum HttpMethod{
-            GET,
-            POST,
-            PUT,
-            DELETE
+        enum class HttpMethod : int{
+            GET=1,
+            POST=2,
+            PUT=3,
+            DELETE=4,
+            OK=5,
+            NOT_FOUND=6,
+            BAD_REQUEST=7
         };
 
+
+/**
+ * @brief Represents an application-level message that can transit through the network.
+ */
+class Message{
+    public:
         /**
          * @brief Construct a new Message object.
          */

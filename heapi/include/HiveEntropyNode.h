@@ -13,7 +13,7 @@ class HiveEntropyNode : HiveEntropyNodeInterface{
         void send(Message m);
 
         template<typename T>
-        void sendMatrixMultiplicationTask(string target, Matrix<T> a, Matrix<T> b, int steps, string taskId, string calculationId);
+        void sendMatrixMultiplicationTask(string target, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId);
         template<typename T>
         void sendMatrixMultiplicationTask(string target,Row<T> rows, Column<T> col, string calculationId);
         template<typename T>
