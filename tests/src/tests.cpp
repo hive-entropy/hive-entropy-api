@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include "../include/catch.hpp"
+#include "catch.hpp"
 
 /*
     Do not write anything here. This file only serves to add a main for Catch.
