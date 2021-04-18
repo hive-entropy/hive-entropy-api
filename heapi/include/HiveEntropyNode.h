@@ -5,7 +5,7 @@
 #include "Row.h"
 #include "Column.h"
 
-class HiveEntropyNode : HiveEntropyNodeInterface{
+class HiveEntropyNode : public HiveEntropyNodeInterface{
     public:
         HiveEntropyNode(std::string uri);
         ~HiveEntropyNode();
