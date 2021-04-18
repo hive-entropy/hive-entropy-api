@@ -7,6 +7,7 @@
 
 //TODO Implement serialization
 class Serializer{
+    public:
     /**
      * @brief Unserialises a collection of matrices.
      * 
