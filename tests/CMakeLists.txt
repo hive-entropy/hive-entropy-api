@@ -2,9 +2,9 @@
 # Import external dependencies
 
 # Create lib folder if it doesn't exist
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/test/lib)
-    file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/test/lib)
-    message(STATUS "Created lib directory in ${PROJECT_SOURCE_DIR}/test")
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/tests/lib)
+    file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/lib)
+    message(STATUS "Created lib directory in ${PROJECT_SOURCE_DIR}/tests")
 endif()
 
 function(download_library LIB_NAME URL DIRECTORY)
@@ -34,12 +34,12 @@ endfunction()
 
 download_library(FakeIt
         "https://raw.githubusercontent.com/eranpeer/FakeIt/master/single_header/catch/fakeit.hpp"
-        ${PROJECT_SOURCE_DIR}/test/lib
+        ${PROJECT_SOURCE_DIR}/tests/lib
         )
 
 download_library(Catch2
         "https://raw.githubusercontent.com/catchorg/Catch2/v2.x/single_include/catch2/catch.hpp"
-        ${PROJECT_SOURCE_DIR}/test/lib
+        ${PROJECT_SOURCE_DIR}/tests/lib
         )
 
 ##############################################
