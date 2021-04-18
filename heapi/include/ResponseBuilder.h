@@ -6,6 +6,7 @@
 
 #include "Message.h"
 #include "Matrix.h"
+#include "Serializer.h"
 
 using namespace std;
 
@@ -27,7 +28,7 @@ class ResponseBuilder{
          * 
          * @return Message the generated message.
          */
-        static Message identityMessage();
+        static Message hardwareMessage();
 
         /**
          * @brief Creates a response for a calculation assistance query.
@@ -52,6 +53,19 @@ class ResponseBuilder{
         static Message matrixMultiplicationResultFragmentMessage(string calculationId, string taskId, int startRow, int startColumn, Matrix<T> fragment);
 
         /**
+         * @brief Creates a message that gives a computed element after row column multiplication.
+         * 
+         * @tparam T the type of the element.
+         * @param calculationId the unique identifier for the calculation.
+         * @param insertX the insertion row.
+         * @param insertY the insertion column. 
+         * @param element the element to insert in the result.
+         * @return Message the generated message. 
+         */
+        template<typename T>
+        static Message matrixMultiplicationResultFragmentMessage(string calculationId, int insertX, int insertY, T element);
+
+        /**
          * @brief Creates a message that gives a result matrix matrix fragment back to the querying node after a convolution.
          * 
          * @tparam T the type of the matrix's elements.
@@ -64,6 +78,75 @@ class ResponseBuilder{
          */
         template<typename T>
         static Message matrixConvolutionResultFragmentMessage(string calculationId, string taskId, int startRow, int endColumn, Matrix<T> fragment);
-};;
+};
+
+
+Message ResponseBuilder::heartbeatMessage(){
+    Message m;
+    m.setType(MessageType::ACK);
+    m.setHttpMethod(HttpMethod::OK);
+
+    return m;
+}
+
+Message ResponseBuilder::hardwareMessage(){
+    Message m;
+    m.setType(MessageType::ACK);
+    m.setHttpMethod(HttpMethod::OK);
+
+    m.setContent("No info for now");
+
+    return m;
+}
+
+static Message assistanceResponseMessage(bool answer){
+    Message m;
+    m.setType(MessageType::NON_CONFIRMABLE);
+    m.setHttpMethod(HttpMethod::OK);
+
+    m.addHeader(Headers::ASSISTANCE_RESPONSE,std::to_string(answer));
+
+    return m;
+}
+
+template<typename T>
+static Message matrixMultiplicationResultFragmentMessage(string calculationId, string taskId, int startRow, int startColumn, Matrix<T> fragment){
+    Message m;
+
+    m.setType(MessageType::CONFIRMABLE);
+    m.setHttpMethod(HttpMethod::OK);
+
+    m.setContent(Serializer::serialize(fragment));
+
+    m.addHeader(Headers::CALCULATION_ID,calculationId);
+    m.addHeader(Headers::TASK_ID,taskId);
+    m.addHeader(Headers::SERIALIZED_TYPE,"matrix");
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(startRow));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(startColumn));
+
+    return m;
+}
+
+template<typename T>
+static Message matrixMultiplicationResultFragmentMessage(string calculationId, int insertX, int insertY, T element){
+    Message m;
+
+    m.setType(MessageType::CONFIRMABLE);
+    m.setHttpMethod(HttpMethod::OK);
+
+    m.setContent(std::to_string(element));
+
+    m.addHeader(Headers::CALCULATION_ID,calculationId);
+    m.addHeader(Headers::SERIALIZED_TYPE,"element");
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(startRow));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(startColumn));
+
+    return m;
+}
+
+template<typename T>
+static Message matrixConvolutionResultFragmentMessage(string calculationId, string taskId, int startRow, int endColumn, Matrix<T> fragment){
+
+}
 
 #endif
