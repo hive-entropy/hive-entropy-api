@@ -29,10 +29,11 @@ class GlobalContext{
          */
         static C get(std::string id);
     private:
-        static std::map<std::string,C> repository = std::map<std::string,C>();
+        static std::map<std::string,C> repository;
 };
 
-
+template<class C>
+std::map<std::string,C> repository = std::map<std::string,C>();
 
 template<class C>
 void GlobalContext<C>::registerObject(std::string id, C o){
