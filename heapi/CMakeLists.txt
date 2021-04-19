@@ -22,6 +22,8 @@ add_library(heapi STATIC
     src/OutOfBoundException.cpp
     src/Message.cpp
     src/CoapEndpoint.cpp
+    src/HiveEntropyNode.cpp
+    src/ResponseBuilder.cpp
 )
 
 # Link the OpenBlas library to the target
