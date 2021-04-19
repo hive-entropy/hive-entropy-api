@@ -12,7 +12,6 @@
 template<class C>
 class GlobalContext{
     public:
-
         /**
          * @brief Inserts an object into the map.
          * 
@@ -34,7 +33,8 @@ class GlobalContext{
          * @param id The identifier of the object to retreive.
          * @return C The retrieved object.
          */
-        static C get(std::string id);
+        static C* get(std::string id);
+
     private:
         static std::map<std::string,C> repository;
 };
@@ -48,13 +48,23 @@ void GlobalContext<C>::registerObject(std::string id, C o){
 }
 
 template<class C>
-C GlobalContext<C>::get(std::string id){
-    return GlobalContext::repository.at(id);
+C* GlobalContext<C>::get(std::string id){
+    C* returnValue = nullptr;
+    iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
+    if (it != GlobalContext<C>::repository.end())
+    { // If an object was found
+        returnValue = GlobalContext::repository.at(it); // Then, return the object
+    } // Else, return a null pointer
+    return returnValue;
 }
 
 template<class C>
 void GlobalContext<C>::unregisterObject(std::string id) {
-    GlobalContext::repository.erase(id);
+    iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
+    if (it != GlobalContext<C>::repository.end())
+    { // If an object was found
+        GlobalContext::repository.erase(it); // Then, delete the object
+    }
 }
 
 #endif
