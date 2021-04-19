@@ -1,4 +1,4 @@
-#include "../include/ResponseBuilder.h"
+#include "ResponseBuilder.h"
 
 Message ResponseBuilder::heartbeatMessage(){
     Message m;
