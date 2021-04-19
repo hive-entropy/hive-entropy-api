@@ -4,8 +4,9 @@
 #include <string>
 #include <map>
 
+#include <coap2/coap.h>
+
 #include "Matrix.h"
-#include "../lib/libcoap/include/coap2/coap.h.in"
 
 using namespace std;
 

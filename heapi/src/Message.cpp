@@ -1,5 +1,5 @@
-#include "../include/Message.h"
 #include <arpa/inet.h>
+#include "Message.h"
 
 Message::Message(){
     headers = std::map<Headers,std::string>();
