@@ -53,6 +53,27 @@ cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OF
 
 **TODO** Décrire la compilation, l'installation, et les étapes à réaliser pour pouvoir utiliser la bibliothèque
 
+#### Initialiser le projet CMake
+```
+cmake -Bbuild/ -S.
+```
+
+#### Lancer la compilation/construction
+```
+cmake --build build/
+```
+
+#### Lancer les tests
+```
+cmake --build build/ --target HiveEntropyTest
+./build/tests/HiveEntropyTest
+```
+
+#### Installer la bibliothèque
+```
+[sudo] cmake --build build/ --target install
+```
+
 ## Exemple
 
 **TODO** Définir un petit programme d'exemple
