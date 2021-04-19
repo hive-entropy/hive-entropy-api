@@ -16,13 +16,13 @@ template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){
     Message m;
     m.setDest(uri+"/task/multiplication/cannon");
-    m.(HttpMethod::POST);
+    m.setHttpMethod(HttpMethod::POST);
     m.setType(MessageType::CONFIRMABLE);
     m.setContent(Serializer::serialize(std::vector<Matrix<T>>(a,b)));
 
     m.addHeader(Headers::SERIALIZED_TYPE,"matrices");
     m.addHeader(Headers::CALCULATION_ID,calculationId);
-    m.addHeader(Headers::ELEMENT_TYPE,typeid(T)::name);
+    m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::STEPS,std::to_string(steps));
     m.addHeader(Headers::TASK_ID,taskId);
     m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
@@ -41,7 +41,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
 
     m.addHeader(Headers::SERIALIZED_TYPE,"rowcol");
     m.addHeader(Headers::CALCULATION_ID,calculationId);
-    m.addHeader(Headers::ELEMENT_TYPE,typeid(T)::name);
+    m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::INSERT_AT_X,std::to_string(row.getPosition()));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(col.getPosition()));
 
