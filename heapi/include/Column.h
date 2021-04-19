@@ -1,10 +1,7 @@
-#ifndef  ROW_H
-#define ROW_H
+#ifndef  COL_H
+#define COL_H
 
-template<typename T>
-class Row;
-
-#include "Row.h"
+#include <type_traits>
 
 template<typename T>
 class Column{
@@ -15,7 +12,8 @@ class Column{
         Column(int size, int position, T* elems);
         ~Column();
         Column(const Column<T>& other);
-        T operator*(const Row<T>& col);
+        bool operator==(Column<T> const& other) const;
+        bool operator!=(Column<T> const& other) const;
 
         T get(int j);
         int getSize();
@@ -29,6 +27,7 @@ class Column{
 
 template<typename T>
 Column<T>::Column(int size, int position, T* elems) : size(size), position(position){
+    this->elems = (T*) malloc(size*sizeof(T));
     for(int i=0;i<size;i++){
         this->elems[i] = elems[i];
     }
@@ -43,20 +42,10 @@ template<typename T>
 Column<T>::Column(const Column<T>& other){
     size = other.size;
     position  = other.position;
+    this->elems = (T*) malloc(size*sizeof(T));
     for(int i=0;i<size;i++){
-        elems[i] = other.get(i);
+        elems[i] = other.elems[i];
     }
-}
-
-template<typename T>
-T Column<T>::operator*(const Row<T>& col){
-    if(size!=col.getSize())
-        throw "Woops";
-    T sum = 0;
-    for(int i=0;i<size;i++){
-        sum += elems[i]*col.get(i);
-    }
-    return sum;
 }
 
 template<typename T>
@@ -74,6 +63,19 @@ int Column<T>::getSize(){
 template<typename T>
 int Column<T>::getPosition(){
     return position;
+}
+
+template<typename T>
+bool Column<T>::operator==(Column<T> const& other) const{
+    if(position!=other.position||size!=other.size) return false;
+    for(int i=0;i<size;i++)
+            if(elems[i]!=other.elems[i]) return false;
+    return true;
+}
+
+template<typename T>
+bool Column<T>::operator!=(Column<T> const& other) const{
+    return !(*this==other);
 }
 
 #endif
