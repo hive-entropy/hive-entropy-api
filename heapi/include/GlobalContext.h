@@ -22,6 +22,13 @@ class GlobalContext{
         static void registerObject(std::string id, C o);
 
         /**
+         * @brief Removes the object stored in the map corresponding to the given id.
+         *
+         * @param id The identifier of the managed object.
+         */
+        static void unregisterObject(std::string id);
+
+        /**
          * @brief Retreives an object from the map.
          * 
          * @param id The identifier of the object to retreive.
@@ -43,6 +50,11 @@ void GlobalContext<C>::registerObject(std::string id, C o){
 template<class C>
 C GlobalContext<C>::get(std::string id){
     return GlobalContext::repository.at(id);
+}
+
+template<class C>
+void GlobalContext<C>::unregisterObject(std::string id) {
+    GlobalContext::repository.erase(id);
 }
 
 #endif
