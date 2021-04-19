@@ -37,22 +37,16 @@ Tous les aspects de programmation concurrente, réseau/protocoles, découpage de
 ```
 git clone --depth 1 --branch v0.3.14 git@github.com:xianyi/OpenBLAS.git
 cd OpenBLAS/
-cmake -E make_directory build
-cd build
-cmake ..
-cmake --build .
-[sudo] cmake --install .
+cmake -Bbuild/ -S.
+[sudo] cmake --build build/ --target install 
 ```
 
 #### Libcoap
 ```
 git clone --depth 1 --branch v4.3.0-rc1 git@github.com:obgm/libcoap.git
 cd libcoap/
-cmake -E make_directory build
-cd build
-cmake .. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OFF
-cmake --build .
-[sudo] cmake --install .
+cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OFF
+[sudo] cmake --build build/ --target install
 ```
 
 ## Utilisation
