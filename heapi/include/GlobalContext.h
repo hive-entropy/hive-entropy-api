@@ -50,7 +50,7 @@ void GlobalContext<C>::registerObject(std::string id, C o){
 template<class C>
 C* GlobalContext<C>::get(std::string id){
     C* returnValue = nullptr;
-    iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
+    typename std::map<std::string, C>::iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
     if (it != GlobalContext<C>::repository.end())
     { // If an object was found
         returnValue = GlobalContext::repository.at(it); // Then, return the object
@@ -60,7 +60,7 @@ C* GlobalContext<C>::get(std::string id){
 
 template<class C>
 void GlobalContext<C>::unregisterObject(std::string id) {
-    iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
+    typename std::map<std::string, C>::iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
     if (it != GlobalContext<C>::repository.end())
     { // If an object was found
         GlobalContext::repository.erase(it); // Then, delete the object

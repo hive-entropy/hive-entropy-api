@@ -1,5 +1,5 @@
-#include "../include/catch.hpp"
-#include "../../heapi/include/full.h"
+#include "catch.hpp"
+#include "full.h"
 #include <arpa/inet.h>
 
 SCENARIO("We should be able to manipulate a message object","[message]"){
