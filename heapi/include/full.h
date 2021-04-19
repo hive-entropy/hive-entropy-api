@@ -4,3 +4,7 @@
 #include "HiveEntropyNodeInterface.h"
 #include "Message.h"
 #include "ResponseBuilder.h"
+#include "Row.h"
+#include "Column.h"
+#include "GlobalContext.h"
+#include "Serializer.h"
