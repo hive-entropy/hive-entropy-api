@@ -76,17 +76,17 @@ void CoapEndpoint::send(Message m){
 	if(activeSessions.find(destination)==activeSessions.end()){
 		coap_uri_t* destParts = coap_new_uri(reinterpret_cast<const uint8_t*>(destination.c_str()),destination.length());
 
-		coap_address_t* dstAddr;
-		coap_address_init(dstAddr);
-		dstAddr->addr.sin.sin_family = AF_INET;
+		coap_address_t dstAddr;
+		coap_address_init(&dstAddr);
+		dstAddr.addr.sin.sin_family = AF_INET;
 
 		char uriBuf[destParts->host.length];
 		strncpy(uriBuf,reinterpret_cast<const char*>(destParts->host.s),destParts->host.length);
 
-		inet_pton(AF_INET, uriBuf, &dstAddr->addr.sin.sin_addr);
-		dstAddr->addr.sin.sin_port = htons(destParts->port);
+		inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
+		dstAddr.addr.sin.sin_port = htons(destParts->port);
 
-		sess = coap_new_client_session(context,&localAddress,dstAddr,COAP_PROTO_UDP);
+		sess = coap_new_client_session(context,&localAddress,&dstAddr,COAP_PROTO_UDP);
 		activeSessions.insert(pair<string,coap_session_t*>(destination,sess));
 
 		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("01234567"));
