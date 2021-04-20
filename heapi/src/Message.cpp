@@ -101,10 +101,15 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     }
 
     //CONTENT
-    std::string tempContent(reinterpret_cast<const char*>(pdu->data));
-    if(tempContent.length()>0){
-        content = tempContent;
-     }
+
+    size_t bodySize;
+    uint8_t * data;
+    if(coap_get_data(pdu,&bodySize,&data)){
+        std::string tempContent(reinterpret_cast<const char*>(data),bodySize);
+        if(tempContent.length()>0){
+            content = tempContent;
+        }
+    }
 
     //DEST
     char dest_buf[INET_ADDRSTRLEN];

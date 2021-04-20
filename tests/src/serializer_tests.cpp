@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "../../heapi/include/Serializer.h"
+#include "Serializer.h"
 
 #include <string>
 
