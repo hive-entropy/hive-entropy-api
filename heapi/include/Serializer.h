@@ -122,7 +122,7 @@ std::string Serializer::serialize(Row<T> row ,Column<T> col, std::string encodin
 
     //Column dimensions
     char* dims_col = (char*) malloc(2);
-    uint8_t int_dims_col[] = {(uint8_t) row.getSize(), (uint8_t) row.getPosition()};
+    uint8_t int_dims_col[] = {(uint8_t) col.getSize(), (uint8_t) col.getPosition()};
     dims_col = reinterpret_cast<char*>(int_dims_col);
 
     if(!std::is_same<T,int>::value&&!std::is_same<T,float>::value&&!std::is_same<T,double>::value)
@@ -135,9 +135,9 @@ std::string Serializer::serialize(Row<T> row ,Column<T> col, std::string encodin
             *(t_body_row+i) = row.get(i);
     body_row = reinterpret_cast<char*>(t_body_row);
 
-    //Filling row body
-    T* t_body_col = (T*) malloc(row.getSize()*sizeof(T));
-    char* body_col = (char*) malloc(row.getSize()*sizeof(T));
+    //Filling col body
+    T* t_body_col = (T*) malloc(col.getSize()*sizeof(T));
+    char* body_col = (char*) malloc(col.getSize()*sizeof(T));
     for(int i=0;i<col.getSize();i++)
             *(t_body_col+i) = col.get(i);
     body_col = reinterpret_cast<char*>(t_body_col);
@@ -145,7 +145,7 @@ std::string Serializer::serialize(Row<T> row ,Column<T> col, std::string encodin
     std::string ser_dims_row(dims_row,2);
     std::string ser_dims_col(dims_col,2);
     std::string serialized_row(body_row,row.getSize()*sizeof(T));
-    std::string serialized_col(body_col,row.getSize()*sizeof(T));
+    std::string serialized_col(body_col,col.getSize()*sizeof(T));
     return ser_dims_row+serialized_row+ser_dims_col+serialized_col;
 }
 
