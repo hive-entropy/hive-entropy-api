@@ -2,7 +2,7 @@
 #include "Serializer.h"
 #include "GlobalContext.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string uri) : HiveEntropyNodeInterface(uri), coap(uri){}
+HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){}
 
 HiveEntropyNode::~HiveEntropyNode(){
     delete &coap;

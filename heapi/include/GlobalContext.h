@@ -40,7 +40,7 @@ class GlobalContext{
 };
 
 template<class C>
-std::map<std::string,C> repository = std::map<std::string,C>();
+std::map<std::string,C> GlobalContext<C>::repository = std::map<std::string,C>();
 
 template<class C>
 void GlobalContext<C>::registerObject(std::string id, C o){

@@ -1,11 +1,14 @@
 #ifndef HIVE_ENTROPY_NODE_H
 #define HIVE_ENTROPY_NODE_H
 
-#include "HiveEntropyNodeInterface.h"
+//#include "HiveEntropyNodeInterface.h"
+#include "Matrix.h"
+#include "Message.h"
+#include "CoapEndpoint.h"
 #include "Row.h"
 #include "Column.h"
 
-class HiveEntropyNode : public HiveEntropyNodeInterface{
+class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
     public:
         HiveEntropyNode(std::string uri);
         ~HiveEntropyNode();

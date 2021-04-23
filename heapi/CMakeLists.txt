@@ -40,6 +40,7 @@ add_library(HiveEntropyAPI
         src/CoapEndpoint.cpp
         src/HiveEntropyNode.cpp
         src/ResponseBuilder.cpp
+        #src/HiveEntropyNodeInterface.cpp
         )
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
