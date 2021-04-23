@@ -84,6 +84,25 @@ void HiveEntropyNode::registerResponseHandler(coap_response_handler_t func){
     coap.registerResponseHandler(func);
 }
 
-void HiveEntropyNode::registerMessageHandler(string key, coap_request_t method, coap_method_handler_t func){
-    coap.addResourceHandler(key, method, func);
+void HiveEntropyNode::registerMessageHandler(string key, HttpMethod method, coap_method_handler_t func){
+    coap_request_t coapMethod;
+
+    switch (method){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_GET;
+        break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_POST;
+        break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_PUT;
+        break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_DELETE;
+        break;
+        default:
+            throw "Unknown HTTP Method";
+    }
+
+    coap.addResourceHandler(key, coapMethod, func);
 }

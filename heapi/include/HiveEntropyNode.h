@@ -24,7 +24,7 @@ class HiveEntropyNode : public HiveEntropyNodeInterface{
         void resolveNodeIdentities();
 
         void registerResponseHandler(coap_response_handler_t func);
-        void registerMessageHandler(string uri, coap_request_t method, coap_method_handler_t func);
+        void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
     private:
         CoapEndpoint coap;
         int banana=5;

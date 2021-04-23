@@ -28,7 +28,7 @@ class HiveEntropyNodeInterface{
         /**
          * @brief Destructor for the Node.
          */
-        ~HiveEntropyNodeInterface();
+        ~HiveEntropyNodeInterface() = default;
 
         /**
          * @brief Used to send a Message on the network. 
@@ -109,7 +109,7 @@ class HiveEntropyNodeInterface{
          * @param method The HTTP Method handled on the URI.
          * @param func The callback function to execute, where the incoming message object is integrated. This method returns the response to be sent to the expeditor, or null if the message is to be ignored.
          */
-        virtual void registerMessageHandler(string uri, coap_request_t method, coap_method_handler_t func);
+        virtual void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
 };
 
 #endif
