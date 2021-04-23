@@ -291,3 +291,78 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
     return transformed;
 }
+
+void Message::fillResponse(coap_pdu_t* response){
+    uint8_t coapMethod;
+
+    switch (httpMethod){
+        case HttpMethod::OK:
+            coapMethod = COAP_RESPONSE_CODE_OK;
+        break;
+        case HttpMethod::NOT_FOUND:
+            coapMethod = COAP_RESPONSE_CODE_NOT_FOUND;
+        break;
+        case HttpMethod::BAD_REQUEST:
+            coapMethod = COAP_RESPONSE_CODE_BAD_REQUEST;
+        break;
+        default:
+            throw "Response code not available";
+    }
+
+    response->code = coapMethod;
+
+    coap_optlist_t *optlist_chain = NULL;
+    for(std::pair<Headers,std::string> el : headers){
+        uint16_t opt_num;
+        switch(el.first){
+            case Headers::PURPOSE:
+                opt_num = 2048;
+            break;
+            case Headers::CALCULATION_ID:
+                opt_num = 2049;
+            break;
+            case Headers::TASK_ID:
+                opt_num = 2050;
+            break;
+            case Headers::INSERT_AT_X:
+                opt_num = 2051;
+            break;
+            case Headers::INSERT_AT_Y:
+                opt_num = 2052;
+            break;
+            case Headers::BORDER_SIZE:
+                opt_num = 2053;
+            break;
+            case Headers::STEPS:
+                opt_num = 2054;
+            break;
+            case Headers::ELEMENT_TYPE:
+                opt_num = 2055;
+            break;
+            case Headers::ENCODING_TYPE:
+                opt_num = 2056;
+            break;
+            case Headers::SERIALIZED_TYPE:
+                opt_num = 2057;
+            break;
+            case Headers::ASSISTANCE_RESPONSE:
+                opt_num = 2058;
+            break;
+            case Headers::PROXY_URI:
+                opt_num = COAP_OPTION_PROXY_URI;
+            break;
+        }
+
+        if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(opt_num, el.second.size(),reinterpret_cast<const uint8_t*>(el.second.c_str()))))
+            throw "Couldn't insert passed option";
+    }
+
+    //====ADD OPTLIST====
+    if (!coap_add_optlist_pdu(response, &optlist_chain))
+        throw "Could not add option list to message";
+    
+    //====ADD CONTENT====
+     if(!content.empty())
+        if(coap_add_data(response,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
+            throw "Unable to add content to the message";
+}

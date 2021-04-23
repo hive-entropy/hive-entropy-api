@@ -144,6 +144,13 @@ class Message{
 
         void setHttpMethod(HttpMethod m);
 
+        /**
+         * @brief Fills a response PDU with message data.
+         * 
+         * @param response The response to fill using the message.
+         */
+        void fillResponse(coap_pdu_t* response);
+
         HttpMethod getHttpMethod();
     private:
         string dest;
