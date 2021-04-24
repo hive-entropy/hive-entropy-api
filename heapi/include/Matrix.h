@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 #include <malloc.h>
-#include <cblas.h>
+#include <openblas/cblas.h>
 
 #include "IncompatibleDimensionsException.h"
 #include "OutOfBoundException.h"
