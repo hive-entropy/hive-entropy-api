@@ -49,7 +49,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
 
     m.addHeader(Headers::SERIALIZED_TYPE,"matrices");
     m.addHeader(Headers::CALCULATION_ID,calculationId);
-    m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
+    m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
     m.addHeader(Headers::STEPS,std::to_string(steps));
     m.addHeader(Headers::TASK_ID,taskId);
     m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
