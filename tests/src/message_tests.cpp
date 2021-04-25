@@ -38,9 +38,11 @@ SCENARIO("We should be able to manipulate a message object","[message]"){
 
             THEN("Both messages have equal fields"){
                 REQUIRE(mess->getContent()==mess2.getContent());
-                //REQUIRE(mess->getDest()==mess2.getDest());
                 REQUIRE(mess->getType()==mess2.getType());
                 REQUIRE(mess->getHttpMethod()==mess2.getHttpMethod());
+                for(std::pair<Headers,std::string> el : mess->getHeaders()){
+                    REQUIRE(el.second==mess2.getHeaders()[el.first]);
+                }
             }
         }
     }
