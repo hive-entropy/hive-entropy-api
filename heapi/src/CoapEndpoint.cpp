@@ -5,9 +5,16 @@
 #include <arpa/inet.h>
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
+
+	//Failsafe URI format
+	if(rootUri.find("coap://")==std::string::npos)
+		rootUri = "coap://"+rootUri;
+	if(rootUri.find_last_of("/")==std::string::npos||rootUri.find_last_of("/")!=rootUri.length()-1)
+		rootUri += "/";
+
 	localRootUri = coap_new_uri(reinterpret_cast<const uint8_t*>(rootUri.c_str()),rootUri.length());
 
-	char uriBuf[localRootUri->host.length];
+	char* uriBuf = (char*) malloc(localRootUri->host.length*sizeof(char));
 	strncpy(uriBuf,reinterpret_cast<const char*>(localRootUri->host.s),localRootUri->host.length);
 
 
@@ -22,6 +29,13 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 
 	if (!context) 
         throw "An error occured while creating the CoapEndpoint";
+
+	coap_register_option(context, COAP_OPTION_URI_PATH);
+	coap_register_option(context, COAP_OPTION_PROXY_URI);
+	coap_register_option(context, 2049);
+	coap_register_option(context, 2051);
+	coap_register_option(context, 2053);
+	coap_register_option(context, 2057);
 
 	keepAlive = true;
 	loop = std::thread(&CoapEndpoint::run,this);
@@ -80,7 +94,7 @@ void CoapEndpoint::send(Message m){
 		coap_address_init(&dstAddr);
 		dstAddr.addr.sin.sin_family = AF_INET;
 
-		char uriBuf[destParts->host.length];
+		char* uriBuf = (char*) malloc(destParts->host.length*sizeof(char));
 		strncpy(uriBuf,reinterpret_cast<const char*>(destParts->host.s),destParts->host.length);
 
 		inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
@@ -104,4 +118,8 @@ void CoapEndpoint::send(Message m){
 void CoapEndpoint::endSession(string uri){
 	coap_session_free(activeSessions.at(uri));
 	activeSessions.erase(uri);
+}
+
+void CoapEndpoint::waitForDeath(){
+	loop.join();
 }

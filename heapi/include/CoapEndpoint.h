@@ -23,6 +23,8 @@ class CoapEndpoint{
         void send(Message m);
 
         void endSession(string uri);
+
+        void waitForDeath();
     private:
         coap_context_t *context;
         coap_address_t localAddress;

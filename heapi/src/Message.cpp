@@ -224,7 +224,14 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
     size_t urilen;
     uint8_t buf[256];
     uint8_t* uri_buf = buf;
-    int count = coap_split_path(reinterpret_cast<const uint8_t*>(dest.c_str()), dest.length(), uri_buf, &urilen);
+
+    coap_uri_t uri_path;
+    coap_split_uri(reinterpret_cast<const uint8_t*>(dest.c_str()),dest.length(),&uri_path);
+    // std::string port = to_string(uri_path.port);
+    // if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(COAP_OPTION_URI_PORT,port.length(),reinterpret_cast<const uint8_t*>(port.c_str()))))
+    //     throw "Couldn't insert URI option";
+
+    int count = coap_split_path(uri_path.path.s,uri_path.path.length, uri_buf, &urilen);
     while (count--) {
       if (!coap_insert_optlist(&optlist_chain,
                                coap_new_optlist(COAP_OPTION_URI_PATH,
@@ -232,12 +239,6 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
         throw "Couldn't insert URI option";
       uri_buf += coap_opt_size(uri_buf);
     }
-
-    //====CONTENT DECLARATION====
-    if(!content.empty())
-        if(coap_add_data(transformed,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
-            throw "Unable to add content to the message";
-
 
     //====ADD OPTIONS====
     for(std::pair<Headers,std::string> el : headers){
@@ -285,9 +286,13 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
             throw "Couldn't insert passed option";
     }
 
-    //====ADD OPTLIST====
-    if (!coap_add_optlist_pdu(transformed, &optlist_chain))
-        throw "Could not add option list to message";
+    if(!coap_add_optlist_pdu(transformed,&optlist_chain))
+            throw "Could not add option list";
+
+    //====CONTENT DECLARATION====
+    if(!content.empty())
+        if(coap_add_data(transformed,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
+            throw "Unable to add content to the message";
 
     return transformed;
 }
@@ -311,7 +316,6 @@ void Message::fillResponse(coap_pdu_t* response){
 
     response->code = coapMethod;
 
-    coap_optlist_t *optlist_chain = NULL;
     for(std::pair<Headers,std::string> el : headers){
         uint16_t opt_num;
         switch(el.first){
@@ -353,14 +357,10 @@ void Message::fillResponse(coap_pdu_t* response){
             break;
         }
 
-        if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(opt_num, el.second.size(),reinterpret_cast<const uint8_t*>(el.second.c_str()))))
+        if (!coap_add_option(response,opt_num,el.second.length(),reinterpret_cast<const uint8_t*>(el.second.c_str())))
             throw "Couldn't insert passed option";
     }
 
-    //====ADD OPTLIST====
-    if (!coap_add_optlist_pdu(response, &optlist_chain))
-        throw "Could not add option list to message";
-    
     //====ADD CONTENT====
      if(!content.empty())
         if(coap_add_data(response,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
