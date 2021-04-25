@@ -62,34 +62,34 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
             case 2048:
                 headers.insert(std::pair<Headers,std::string>(Headers::PURPOSE,optVal));
             break;
-            case 2049:
+            case 2050:
                 headers.insert(std::pair<Headers,std::string>(Headers::CALCULATION_ID, optVal));
             break;
-            case 2050:
+            case 2052:
                 headers.insert(std::pair<Headers,std::string>(Headers::TASK_ID, optVal));
             break;
-            case 2051:
+            case 2054:
                 headers.insert(std::pair<Headers,std::string>(Headers::INSERT_AT_X, optVal));
             break;
-            case 2052:
+            case 2056:
                 headers.insert(std::pair<Headers,std::string>(Headers::INSERT_AT_Y, optVal));
             break;
-            case 2053:
+            case 2058:
                 headers.insert(std::pair<Headers,std::string>(Headers::BORDER_SIZE, optVal));
             break;
-            case 2054:
+            case 2060:
                 headers.insert(std::pair<Headers,std::string>(Headers::STEPS, optVal));
             break;
-            case 2055:
+            case 2062:
                 headers.insert(std::pair<Headers,std::string>(Headers::ELEMENT_TYPE, optVal));
             break;
-            case 2056:
+            case 2064:
                 headers.insert(std::pair<Headers,std::string>(Headers::ENCODING_TYPE, optVal));
             break;
-            case 2057:
+            case 2066:
                 headers.insert(std::pair<Headers,std::string>(Headers::SERIALIZED_TYPE, optVal));
             break;
-            case 2058:
+            case 2068:
                 headers.insert(std::pair<Headers,std::string>(Headers::ASSISTANCE_RESPONSE, optVal));
             break;
             case COAP_OPTION_PROXY_URI:
@@ -227,9 +227,6 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
     coap_uri_t uri_path;
     coap_split_uri(reinterpret_cast<const uint8_t*>(dest.c_str()),dest.length(),&uri_path);
-    // std::string port = to_string(uri_path.port);
-    // if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(COAP_OPTION_URI_PORT,port.length(),reinterpret_cast<const uint8_t*>(port.c_str()))))
-    //     throw "Couldn't insert URI option";
 
     int count = coap_split_path(uri_path.path.s,uri_path.path.length, uri_buf, &urilen);
     while (count--) {
@@ -248,41 +245,41 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
                 opt_num = 2048;
             break;
             case Headers::CALCULATION_ID:
-                opt_num = 2049;
-            break;
-            case Headers::TASK_ID:
                 opt_num = 2050;
             break;
-            case Headers::INSERT_AT_X:
-                opt_num = 2051;
-            break;
-            case Headers::INSERT_AT_Y:
+            case Headers::TASK_ID:
                 opt_num = 2052;
             break;
-            case Headers::BORDER_SIZE:
-                opt_num = 2053;
-            break;
-            case Headers::STEPS:
+            case Headers::INSERT_AT_X:
                 opt_num = 2054;
             break;
-            case Headers::ELEMENT_TYPE:
-                opt_num = 2055;
-            break;
-            case Headers::ENCODING_TYPE:
+            case Headers::INSERT_AT_Y:
                 opt_num = 2056;
             break;
+            case Headers::BORDER_SIZE:
+                opt_num = 2058;
+            break;
+            case Headers::STEPS:
+                opt_num = 2060;
+            break;
+            case Headers::ELEMENT_TYPE:
+                opt_num = 2062;
+            break;
+            case Headers::ENCODING_TYPE:
+                opt_num = 2064;
+            break;
             case Headers::SERIALIZED_TYPE:
-                opt_num = 2057;
+                opt_num = 2066;
             break;
             case Headers::ASSISTANCE_RESPONSE:
-                opt_num = 2058;
+                opt_num = 2068;
             break;
             case Headers::PROXY_URI:
                 opt_num = COAP_OPTION_PROXY_URI;
             break;
         }
 
-        if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(opt_num, el.second.size(),reinterpret_cast<const uint8_t*>(el.second.c_str()))))
+        if (!coap_insert_optlist(&optlist_chain,coap_new_optlist(opt_num,el.second.length(),reinterpret_cast<const uint8_t*>(el.second.c_str()))))
             throw "Couldn't insert passed option";
     }
 
@@ -316,49 +313,56 @@ void Message::fillResponse(coap_pdu_t* response){
 
     response->code = coapMethod;
 
-    for(std::pair<Headers,std::string> el : headers){
-        uint16_t opt_num;
-        switch(el.first){
-            case Headers::PURPOSE:
-                opt_num = 2048;
-            break;
-            case Headers::CALCULATION_ID:
-                opt_num = 2049;
-            break;
-            case Headers::TASK_ID:
-                opt_num = 2050;
-            break;
-            case Headers::INSERT_AT_X:
-                opt_num = 2051;
-            break;
-            case Headers::INSERT_AT_Y:
-                opt_num = 2052;
-            break;
-            case Headers::BORDER_SIZE:
-                opt_num = 2053;
-            break;
-            case Headers::STEPS:
-                opt_num = 2054;
-            break;
-            case Headers::ELEMENT_TYPE:
-                opt_num = 2055;
-            break;
-            case Headers::ENCODING_TYPE:
-                opt_num = 2056;
-            break;
-            case Headers::SERIALIZED_TYPE:
-                opt_num = 2057;
-            break;
-            case Headers::ASSISTANCE_RESPONSE:
-                opt_num = 2058;
-            break;
-            case Headers::PROXY_URI:
-                opt_num = COAP_OPTION_PROXY_URI;
-            break;
+    if(!headers.empty()){
+        coap_optlist_t* chain = NULL;
+
+        for(std::pair<Headers,std::string> el : headers){
+            uint16_t opt_num;
+            switch(el.first){
+                case Headers::PURPOSE:
+                    opt_num = 2048;
+                break;
+                case Headers::CALCULATION_ID:
+                    opt_num = 2050;
+                break;
+                case Headers::TASK_ID:
+                    opt_num = 2052;
+                break;
+                case Headers::INSERT_AT_X:
+                    opt_num = 2054;
+                break;
+                case Headers::INSERT_AT_Y:
+                    opt_num = 2056;
+                break;
+                case Headers::BORDER_SIZE:
+                    opt_num = 2058;
+                break;
+                case Headers::STEPS:
+                    opt_num = 2060;
+                break;
+                case Headers::ELEMENT_TYPE:
+                    opt_num = 2062;
+                break;
+                case Headers::ENCODING_TYPE:
+                    opt_num = 2064;
+                break;
+                case Headers::SERIALIZED_TYPE:
+                    opt_num = 2066;
+                break;
+                case Headers::ASSISTANCE_RESPONSE:
+                    opt_num = 2068;
+                break;
+                case Headers::PROXY_URI:
+                    opt_num = COAP_OPTION_PROXY_URI;
+                break;
+            }
+
+            if (!coap_insert_optlist(&chain,coap_new_optlist(opt_num,el.second.length(),reinterpret_cast<const uint8_t*>(el.second.c_str()))))
+                throw "Couldn't insert passed option";
         }
 
-        if (!coap_add_option(response,opt_num,el.second.length(),reinterpret_cast<const uint8_t*>(el.second.c_str())))
-            throw "Couldn't insert passed option";
+        if(!coap_add_optlist_pdu(response,&chain))
+                throw "Could not add option list";
     }
 
     //====ADD CONTENT====
