@@ -35,6 +35,7 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 	coap_register_option(context, 2049);
 	coap_register_option(context, 2051);
 	coap_register_option(context, 2053);
+	coap_register_option(context,2055);
 	coap_register_option(context, 2057);
 
 	keepAlive = true;
