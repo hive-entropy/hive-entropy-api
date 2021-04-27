@@ -20,7 +20,7 @@ Message ResponseBuilder::hardwareMessage(){
     return m;
 }
 
-static Message assistanceResponseMessage(bool answer){
+Message ResponseBuilder::assistanceResponseMessage(bool answer){
     Message m;
     m.setType(MessageType::NON_CONFIRMABLE);
     m.setHttpMethod(HttpMethod::OK);

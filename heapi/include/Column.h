@@ -15,9 +15,9 @@ class Column{
         bool operator==(Column<T> const& other) const;
         bool operator!=(Column<T> const& other) const;
 
-        T get(int j);
-        int getSize();
-        int getPosition();
+        T get(int j) const;
+        int getSize() const;
+        int getPosition() const;
 
     private:
         int position;
@@ -49,19 +49,19 @@ Column<T>::Column(const Column<T>& other){
 }
 
 template<typename T>
-T Column<T>::get(int j){
+T Column<T>::get(int j) const {
     if(j>size||j<0)
         throw "Woops";
     return elems[j];
 }
 
 template<typename T>
-int Column<T>::getSize(){
+int Column<T>::getSize() const {
     return size;
 }
 
 template<typename T>
-int Column<T>::getPosition(){
+int Column<T>::getPosition() const {
     return position;
 }
 
