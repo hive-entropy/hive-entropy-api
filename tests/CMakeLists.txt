@@ -49,7 +49,7 @@ download_library(Catch2
 add_library(Catch_FakeIt INTERFACE)
 target_include_directories(Catch_FakeIt
         INTERFACE lib
-        )
+)
 
 add_executable (HiveEntropyTest
         src/tests.cpp 
@@ -57,10 +57,15 @@ add_executable (HiveEntropyTest
         src/coap_endpoint_tests.cpp
         src/message_tests.cpp
         src/serializer_tests.cpp
-        )
+)
 
 target_link_libraries(HiveEntropyTest
         PRIVATE
             HiveEntropyAPI::HiveEntropyAPI
             Catch_FakeIt
-        )
+)
+
+add_test(
+    NAME HiveEntropyTest
+    COMMAND HiveEntropyTest -o report.xml -r junit
+)
