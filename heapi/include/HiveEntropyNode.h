@@ -39,7 +39,13 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
 template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){
     Message m;
-    m.setDest(uri+"/task/multiplication/cannon");
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"task/multiplication/cannon");
     m.setHttpMethod(HttpMethod::POST);
     m.setType(MessageType::NON_CONFIRMABLE);
     std::vector<Matrix<T>> vec;
@@ -61,7 +67,13 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
 template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId){
     Message m;
-    m.setDest(uri+"/task/multiplication/rowcol");
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"task/multiplication/rowcol");
     m.setHttpMethod(HttpMethod::POST);
     m.setType(MessageType::CONFIRMABLE);
     m.setContent(Serializer::serialize(row,col));

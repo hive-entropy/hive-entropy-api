@@ -14,7 +14,13 @@ void HiveEntropyNode::send(Message m){
 
 void HiveEntropyNode::checkLiveness(string uri){
     Message m;
-    m.setDest(uri+"/health");
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+        
+    m.setDest(uri+"health");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -23,7 +29,7 @@ void HiveEntropyNode::checkLiveness(string uri){
 
 void HiveEntropyNode::queryNodeAvailability(){
     Message m;
-    m.setDest("224.0.1.187/require-help");
+    m.setDest("coap://224.0.1.187/require-help");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -32,7 +38,7 @@ void HiveEntropyNode::queryNodeAvailability(){
 
 void HiveEntropyNode::resolveNodeIdentities(){
     Message m;
-    m.setDest("224.0.1.187/hardware");
+    m.setDest("coap://224.0.1.187/hardware");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
