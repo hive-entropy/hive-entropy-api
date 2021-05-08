@@ -53,6 +53,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
     vec.push_back(b);
     m.setContent(Serializer::serialize(vec));
 
+    m.addHeader(Headers::PURPOSE,"assistance");
     m.addHeader(Headers::SERIALIZED_TYPE,"matrices");
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
@@ -78,6 +79,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
     m.setType(MessageType::CONFIRMABLE);
     m.setContent(Serializer::serialize(row,col));
 
+    m.addHeader(Headers::PURPOSE,"assistance");
     m.addHeader(Headers::SERIALIZED_TYPE,"rowcol");
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
