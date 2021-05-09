@@ -11,7 +11,7 @@
 using namespace std;
 
 
- /**
+        /**
          * @brief An enumeration of possible headers for a message to use.
          */
         enum class Headers : int{
@@ -136,12 +136,17 @@ class Message{
         string getContent();
 
         /**
-         * @brief Set the Content oof the message.
+         * @brief Set the Content of the message.
          * 
          * @param content the content to put in the message.
          */
         void setContent(string content);
 
+        /**
+         * @brief Set the Http Method of the message.
+         * 
+         * @param m the Http Method to put in the message.
+         */
         void setHttpMethod(HttpMethod m);
 
         /**
@@ -151,6 +156,11 @@ class Message{
          */
         void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response);
 
+        /**
+         * @brief Get the Http Method of the message.
+         * 
+         * @return HttpMethod the Http Method of the message.
+         */
         HttpMethod getHttpMethod();
     private:
         string dest;
