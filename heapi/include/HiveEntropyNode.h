@@ -1,7 +1,6 @@
 #ifndef HIVE_ENTROPY_NODE_H
 #define HIVE_ENTROPY_NODE_H
 
-//#include "HiveEntropyNodeInterface.h"
 #include "Matrix.h"
 #include "Message.h"
 #include "CoapEndpoint.h"
@@ -53,7 +52,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
     vec.push_back(b);
     m.setContent(Serializer::serialize(vec));
 
-    m.addHeader(Headers::SERIALIZED_TYPE,"matrices");
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRICES);
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
     m.addHeader(Headers::STEPS,std::to_string(steps));
@@ -78,7 +77,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
     m.setType(MessageType::CONFIRMABLE);
     m.setContent(Serializer::serialize(row,col));
 
-    m.addHeader(Headers::SERIALIZED_TYPE,"rowcol");
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_ROWCOL);
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::INSERT_AT_X,std::to_string(row.getPosition()));

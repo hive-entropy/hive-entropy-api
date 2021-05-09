@@ -91,8 +91,8 @@ Message ResponseBuilder::matrixMultiplicationResultFragmentMessage(string calcul
 
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::TASK_ID,taskId);
-    m.addHeader(Headers::PURPOSE,"result");
-    m.addHeader(Headers::SERIALIZED_TYPE,"matrix");
+    m.addHeader(Headers::PURPOSE,PURPOSE_RESULT);
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRIX);
     m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::INSERT_AT_X,std::to_string(startRow));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(startColumn));
@@ -110,8 +110,8 @@ Message ResponseBuilder::matrixMultiplicationResultFragmentMessage(string calcul
     m.setContent(std::to_string(element));
 
     m.addHeader(Headers::CALCULATION_ID,calculationId);
-    m.addHeader(Headers::SERIALIZED_TYPE,"element");
-    m.addHeader(Headers::PURPOSE,"result");
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_ELEMENT);
+    m.addHeader(Headers::PURPOSE,PURPOSE_RESULT);
     m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::INSERT_AT_X,std::to_string(insertX));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertY));

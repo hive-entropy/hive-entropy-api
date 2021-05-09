@@ -10,49 +10,59 @@
 
 using namespace std;
 
+///Possible purposes
+#define PURPOSE_ASSISTANCE "assistance"
+#define PURPOSE_RESULT "result"
+#define PURPOSE_HEALTH "health"
+#define PURPOSE_HARDWARE "hardware"
 
-        /**
-         * @brief An enumeration of possible headers for a message to use.
-         */
-        enum class Headers : int{
-            PURPOSE=1,
-            CALCULATION_ID=2,
-            TASK_ID=3,
-            INSERT_AT_X=4,
-            INSERT_AT_Y=5,
-            BORDER_SIZE=6,
-            STEPS=7,
-            ELEMENT_TYPE=8,
-            PROXY_URI=9,
-            ENCODING_TYPE=10,
-            SERIALIZED_TYPE=11,
-            ASSISTANCE_RESPONSE=12
-        };
+///Possible serialized types
+#define SERIALIZED_TYPE_MATRIX "matrix"
+#define SERIALIZED_TYPE_MATRICES "matrices"
+#define SERIALIZED_TYPE_ROWCOL "rowcol"
+#define SERIALIZED_TYPE_ELEMENT "element"
 
-        /**
-         * @brief An enumeration of possible message types as defined in RFC 7252.
-         */
-        enum class MessageType : int{
-            CONFIRMABLE=1,
-            NON_CONFIRMABLE=2,
-            ACK=3,
-            RESET=4
-        };
+/**
+ * @brief An enumeration of possible headers for a message to use.
+ */
+enum class Headers : int{
+    PURPOSE=1,
+    CALCULATION_ID=2,
+    TASK_ID=3,
+    INSERT_AT_X=4,
+    INSERT_AT_Y=5,
+    BORDER_SIZE=6,
+    STEPS=7,
+    ELEMENT_TYPE=8,
+    PROXY_URI=9,
+    ENCODING_TYPE=10,
+    SERIALIZED_TYPE=11,
+    ASSISTANCE_RESPONSE=12
+};
 
-        /**
-         * @brief An enumeration of supported HTTP Methods.
-         * 
-         */
-        enum class HttpMethod : int{
-            GET=1,
-            POST=2,
-            PUT=3,
-            DELETE=4,
-            OK=5,
-            NOT_FOUND=6,
-            BAD_REQUEST=7
-        };
+/**
+ * @brief An enumeration of possible message types as defined in RFC 7252.
+ */
+enum class MessageType : int{
+    CONFIRMABLE=1,
+    NON_CONFIRMABLE=2,
+    ACK=3,
+    RESET=4
+};
 
+/**
+    * @brief An enumeration of supported HTTP Methods.
+    * 
+    */
+enum class HttpMethod : int{
+    GET=1,
+    POST=2,
+    PUT=3,
+    DELETE=4,
+    OK=5,
+    NOT_FOUND=6,
+    BAD_REQUEST=7
+};
 
 /**
  * @brief Represents an application-level message that can transit through the network.
