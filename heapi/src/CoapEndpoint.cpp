@@ -30,6 +30,8 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 	if (!context) 
         throw "An error occured while creating the CoapEndpoint";
 
+	coap_context_set_block_mode(context,COAP_BLOCK_USE_LIBCOAP|COAP_BLOCK_SINGLE_BODY); 
+
 	coap_register_option(context, COAP_OPTION_URI_PATH);
 	coap_register_option(context, COAP_OPTION_PROXY_URI);
 	coap_register_option(context, 2049);
@@ -112,7 +114,7 @@ void CoapEndpoint::send(Message m){
 	
 	coap_pdu_t* coapMessage = m.toCoapMessage(sess);
 
-	if(coap_send(sess,coapMessage)==COAP_INVALID_MID)
+	if(coap_send_large(sess,coapMessage)==COAP_INVALID_MID)
 		throw("Unable to send message");
 }
 

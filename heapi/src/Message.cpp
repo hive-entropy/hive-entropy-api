@@ -288,13 +288,13 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
     //====CONTENT DECLARATION====
     if(!content.empty())
-        if(coap_add_data(transformed,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
+        if(coap_add_data_large_request(sess,transformed,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()),NULL,NULL)==0)
             throw "Unable to add content to the message";
 
     return transformed;
 }
 
-void Message::fillResponse(coap_pdu_t* response){
+void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
     uint8_t coapMethod;
 
     switch (httpMethod){
@@ -367,6 +367,6 @@ void Message::fillResponse(coap_pdu_t* response){
 
     //====ADD CONTENT====
      if(!content.empty())
-        if(coap_add_data(response,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()))==0)
+        if(coap_add_data_large_response(resource,sess,request,response,tok,NULL,COAP_MEDIATYPE_ANY,-1,0,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()),NULL,NULL)==0)
             throw "Unable to add content to the message";
 }

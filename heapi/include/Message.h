@@ -149,7 +149,7 @@ class Message{
          * 
          * @param response The response to fill using the message.
          */
-        void fillResponse(coap_pdu_t* response);
+        void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response);
 
         HttpMethod getHttpMethod();
     private:
