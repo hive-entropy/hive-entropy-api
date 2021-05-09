@@ -13,7 +13,7 @@ MessageHandler::MessageHandler()
 MessageHandler::~MessageHandler()
 {
 }
-
+/*
 coap_response_t MessageHandler::handleMessage(coap_context_t *context, 
                                     coap_session_t *session, 
                                     coap_pdu_t *sent, 
@@ -28,16 +28,7 @@ coap_response_t MessageHandler::handleMessage(coap_context_t *context,
     cout << "content value : " << m.getContent() << endl;
     printf("purpose : %s\n", purpose);
     printf("content : %s\n", m.getContent());
-
-    switch (purpose)
-    {
-    case "assistance":
-        
-        break;
-    
-    default:
-        break;
-    }
     return COAP_RESPONSE_OK;
 }
+*/
 
