@@ -116,6 +116,12 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     inet_ntop(AF_INET,&(sess->addr_info.local.addr.sin.sin_addr),dest_buf,INET_ADDRSTRLEN);
     std::string tempHost(dest_buf);
     dest = tempHost+":"+to_string(htons(sess->addr_info.local.addr.sin.sin_port));
+
+    //PEER
+    char peer_buf[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET,&(sess->addr_info.remote.addr.sin.sin_addr),peer_buf,INET_ADDRSTRLEN);
+    std::string tempPeerHost(peer_buf);
+    peer = tempPeerHost+":"+to_string(htons(sess->addr_info.remote.addr.sin.sin_port));
 }
 
 Message::~Message(){}
@@ -292,6 +298,10 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
             throw "Unable to add content to the message";
 
     return transformed;
+}
+
+std::string Message::getPeer(){
+    return peer;
 }
 
 void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
