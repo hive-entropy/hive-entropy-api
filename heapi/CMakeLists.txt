@@ -40,6 +40,7 @@ add_library(HiveEntropyAPI
         src/CoapEndpoint.cpp
         src/HiveEntropyNode.cpp
         src/ResponseBuilder.cpp
+        src/MessageHandler.cpp
         #src/HiveEntropyNodeInterface.cpp
         )
 

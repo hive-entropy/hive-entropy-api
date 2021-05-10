@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <iostream>
 #include "Message.h"
 
 Message::Message(){
@@ -296,7 +297,6 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
 void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
     uint8_t coapMethod;
-
     switch (httpMethod){
         case HttpMethod::OK:
             coapMethod = COAP_RESPONSE_CODE_OK;
