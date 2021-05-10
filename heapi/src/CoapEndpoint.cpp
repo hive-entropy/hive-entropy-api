@@ -6,6 +6,8 @@
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
 
+	coap_set_log_level(LOG_DEBUG);
+
 	//Failsafe URI format
 	if(rootUri.find("coap://")==std::string::npos)
 		rootUri = "coap://"+rootUri;
@@ -39,6 +41,9 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 	coap_register_option(context, 2053);
 	coap_register_option(context,2055);
 	coap_register_option(context, 2057);
+
+	if(coap_join_mcast_group_intf(context,"239.0.0.1",NULL)!=0)
+		throw "Couldn't join multicast";
 
 	keepAlive = true;
 	loop = std::thread(&CoapEndpoint::run,this);
