@@ -29,7 +29,7 @@ void HiveEntropyNode::checkLiveness(string uri){
 
 void HiveEntropyNode::queryNodeAvailability(){
     Message m;
-    m.setDest("coap://224.0.1.187/require-help");
+    m.setDest("coap://239.0.0.1:9999/require-help");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -38,7 +38,7 @@ void HiveEntropyNode::queryNodeAvailability(){
 
 void HiveEntropyNode::resolveNodeIdentities(){
     Message m;
-    m.setDest("coap://224.0.1.187/hardware");
+    m.setDest("coap://239.0.0.1:9999/hardware");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -75,3 +75,5 @@ void HiveEntropyNode::registerMessageHandler(string key, HttpMethod method, coap
 void HiveEntropyNode::keepAlive(){
     coap.waitForDeath();
 };
+
+//TODO Add async handler registration
