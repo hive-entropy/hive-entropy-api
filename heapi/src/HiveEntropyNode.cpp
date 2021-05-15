@@ -1,8 +1,13 @@
 #include "HiveEntropyNode.h"
 #include "Serializer.h"
 #include "GlobalContext.h"
+#include "MessageHandler.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){}
+HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){
+    registerResponseHandler(MessageHandler::handleMessage);
+    std::map<std::string, bool> adressList;
+    GlobalContext<std::map<std::string, bool>>::registerObject("adress", adressList);
+}
 
 HiveEntropyNode::~HiveEntropyNode(){
     //delete &coap;
