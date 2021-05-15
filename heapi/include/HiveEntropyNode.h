@@ -28,12 +28,17 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
 
         void registerResponseHandler(coap_response_handler_t func);
         void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
+        void registerAsynchronousMessageHandler(string uri, HttpMethod m, Message (*func)(Message m));
 
         void keepAlive();
     private:
+        std::map<std::pair<std::string,HttpMethod>,Message (*)(Message)> asyncHandlers;
         CoapEndpoint coap;
-        int banana=5;
 };
+
+
+//-----------------------
+//Templated methods
 
 template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){
