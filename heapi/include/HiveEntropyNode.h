@@ -1,6 +1,7 @@
 #ifndef HIVE_ENTROPY_NODE_H
 #define HIVE_ENTROPY_NODE_H
 
+#include <functional>
 #include "Matrix.h"
 #include "Message.h"
 #include "CoapEndpoint.h"
@@ -27,12 +28,42 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void resolveNodeIdentities();
 
         void registerResponseHandler(coap_response_handler_t func);
-        void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
+
+        template<void(*F)(Message)>
+        void registerMessageHandler(string uri, HttpMethod method);
 
         void keepAlive();
+
     private:
         CoapEndpoint coap;
         int banana=5;
+};
+
+template<void(*F)(Message)>
+void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
+    coap_request_t coapMethod;
+
+    switch (method){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_GET;
+            break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_POST;
+            break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_PUT;
+            break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_DELETE;
+            break;
+        default:
+            throw "Unknown HTTP Method";
+    }
+
+    coap.addResourceHandler(uri, coapMethod, [](coap_context_t *context, coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token, coap_string_t *query, coap_pdu_t *response){
+        Message inputMessage(session, request);
+        F(inputMessage);
+    });
 };
 
 template<typename T>
