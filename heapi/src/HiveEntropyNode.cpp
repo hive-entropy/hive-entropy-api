@@ -2,8 +2,13 @@
 #include "HiveEntropyNode.h"
 #include "Serializer.h"
 #include "GlobalContext.h"
+#include "MessageHandler.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){}
+HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){
+    registerResponseHandler(MessageHandler::handleMessage);
+    std::map<std::string, bool> adressList;
+    GlobalContext<std::map<std::string, bool>>::registerObject("adress", adressList);
+}
 
 HiveEntropyNode::~HiveEntropyNode(){
     //delete &coap;
@@ -30,7 +35,7 @@ void HiveEntropyNode::checkLiveness(string uri){
 
 void HiveEntropyNode::queryNodeAvailability(){
     Message m;
-    m.setDest("coap://224.0.1.187/require-help");
+    m.setDest("coap://239.0.0.1:9999/require-help");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -39,7 +44,7 @@ void HiveEntropyNode::queryNodeAvailability(){
 
 void HiveEntropyNode::resolveNodeIdentities(){
     Message m;
-    m.setDest("coap://224.0.1.187/hardware");
+    m.setDest("coap://239.0.0.1:9999/hardware");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -52,4 +57,6 @@ void HiveEntropyNode::registerResponseHandler(coap_response_handler_t func){
 
 void HiveEntropyNode::keepAlive(){
     coap.waitForDeath();
-}
+};
+
+// TODO: Add async handler registration

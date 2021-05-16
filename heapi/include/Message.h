@@ -190,11 +190,14 @@ class Message{
          * @return HttpMethod the Http Method of the message.
          */
         HttpMethod getHttpMethod();
+
+        std::string getPeer();
     private:
-        string dest;
+        std::string dest;
+        std::string peer;
         HttpMethod httpMethod;
         map<Headers,string> headers;
-        string content;
+        std::string content;
         MessageType type;
         MessageData data;
 };

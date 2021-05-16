@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <iostream>
 #include "Message.h"
 
 Message::Message(){
@@ -116,6 +117,12 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     inet_ntop(AF_INET,&(sess->addr_info.local.addr.sin.sin_addr),dest_buf,INET_ADDRSTRLEN);
     std::string tempHost(dest_buf);
     dest = tempHost+":"+to_string(htons(sess->addr_info.local.addr.sin.sin_port));
+
+    //PEER
+    char peer_buf[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET,&(sess->addr_info.remote.addr.sin.sin_addr),peer_buf,INET_ADDRSTRLEN);
+    std::string tempPeerHost(peer_buf);
+    peer = tempPeerHost+":"+to_string(htons(sess->addr_info.remote.addr.sin.sin_port));
 }
 
 Message::Message(coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token,
@@ -303,9 +310,12 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
     return transformed;
 }
 
+std::string Message::getPeer(){
+    return peer;
+}
+
 void Message::fillResponse() {
     uint8_t coapMethod;
-
     switch (httpMethod){
         case HttpMethod::OK:
             coapMethod = COAP_RESPONSE_CODE_OK;
