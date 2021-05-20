@@ -228,21 +228,24 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
         throw "Unable to add token to the message";
 
     //====URI====
-    size_t urilen;
-    uint8_t buf[256];
-    uint8_t* uri_buf = buf;
-
     coap_uri_t uri_path;
-    coap_split_uri(reinterpret_cast<const uint8_t*>(dest.c_str()),dest.length(),&uri_path);
-
-    int count = coap_split_path(uri_path.path.s,uri_path.path.length, uri_buf, &urilen);
-    while (count--) {
-      if (!coap_insert_optlist(&optlist_chain,
-                               coap_new_optlist(COAP_OPTION_URI_PATH,
-                        coap_opt_length(uri_buf), coap_opt_value(uri_buf))))
-        throw "Couldn't insert URI option";
-      uri_buf += coap_opt_size(uri_buf);
+    if(coap_split_uri(reinterpret_cast<const uint8_t*>(dest.c_str()),dest.length(),&uri_path)){
+        cout << "Error splitting the URI" << endl;
     }
+
+    std::string path(reinterpret_cast<const char*>(uri_path.path.s),uri_path.path.length);
+    int delimiterPosition;
+
+    while ((delimiterPosition = path.find("/")) != std::string::npos) {
+        std::string token(path.substr(0,delimiterPosition));
+        if (!coap_insert_optlist(&optlist_chain, coap_new_optlist(COAP_OPTION_URI_PATH,token.length(),reinterpret_cast<const uint8_t*>(token.c_str()))))
+            throw "Couldn't insert URI option";
+        path.erase(0, delimiterPosition+1);
+    }
+
+    if(path.size()>0) 
+        if(!coap_insert_optlist(&optlist_chain, coap_new_optlist(COAP_OPTION_URI_PATH,path.length(),reinterpret_cast<const uint8_t*>(path.c_str()))))
+                throw "Couldn't insert URI option";
 
     //====ADD OPTIONS====
     for(std::pair<Headers,std::string> el : headers){
