@@ -1,7 +1,6 @@
 #include "HiveEntropyNode.h"
 #include "Serializer.h"
 #include "GlobalContext.h"
-#include "MessageHandler.h"
 
 HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri) {}
 
