@@ -26,7 +26,7 @@
 
 ##############################################
 # Find system dependencies
-#find_package(OpenBLAS REQUIRED)
+find_package(OpenBLAS REQUIRED)
 find_package(libcoap REQUIRED)
 
 ##############################################
@@ -61,14 +61,14 @@ target_compile_features(HiveEntropyAPI
         )
 
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g -lopenblas
+        PRIVATE -Wall -g
         )
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
 target_link_libraries(HiveEntropyAPI
-        PUBLIC libcoap::coap-2
+        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-2
 )
 
 ##############################################
