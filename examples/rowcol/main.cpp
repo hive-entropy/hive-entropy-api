@@ -9,14 +9,17 @@ int main(void){
     Matrix<float> B(9,3,MatrixArchetype::ID);
 
 
-    HiveEntropyNode* n = new HiveEntropyNode("127.0.0.1:6969");
-    
+    cout << "[main] Doing calculation locally" << endl;
+    Matrix<float> localC = A*B;
+    localC.show();
 
+
+    HiveEntropyNode* n = new HiveEntropyNode("127.0.0.1:6969");
     Distributor<float> dist(n);
 
     cout << "[main] Requesting distributed multiplication" << endl;
 
-    std::string calc1 = dist.distributeMatrixMultiplication(A,B);
+    std::string calc1 = dist.distributeMatrixMultiplication(A,B,MultiplicationMethod::CANNON);
 
     cout << "[main] Received calculationId="+calc1 << endl;
     cout << "[main] Doing unrelated work" << endl;
