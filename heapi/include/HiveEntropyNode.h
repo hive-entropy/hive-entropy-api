@@ -51,7 +51,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
 
     m.setDest(uri+"task/multiplication/cannon");
     m.setHttpMethod(HttpMethod::POST);
-    m.setType(MessageType::NON_CONFIRMABLE);
+    m.setType(MessageType::CONFIRMABLE);
     std::vector<Matrix<T>> vec;
     vec.push_back(a);
     vec.push_back(b);
