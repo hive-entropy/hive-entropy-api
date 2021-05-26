@@ -26,7 +26,7 @@
 
 ##############################################
 # Find system dependencies
-find_package(OpenBLAS REQUIRED)
+#find_package(OpenBLAS REQUIRED)
 find_package(libcoap REQUIRED)
 
 ##############################################
@@ -61,7 +61,7 @@ target_compile_features(HiveEntropyAPI
         )
 
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g
+        PRIVATE -Wall -g -lopenblas
         )
 
 # Link the OpenBlas library to the target
