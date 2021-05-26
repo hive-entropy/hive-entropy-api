@@ -65,6 +65,10 @@ target_link_libraries(HiveEntropyTest
             Catch_FakeIt
 )
 
+target_include_directories(HiveEntropyTest
+    lib
+)
+
 add_test(
     NAME HiveEntropyTest
     COMMAND HiveEntropyTest -o report.xml -r junit
