@@ -148,16 +148,34 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
         }
     }
     else if(m==MultiplicationMethod::CANNON){
-        //Determine optimal block size
         //----> Count assisters
-        //----> Find closest perfect square
-        //----> If it is smaller don't use all nodes
-        //----> If it is bigger either do excess locally or assign more than one task to some nodes
+        int nodeCount = peerAddresses.size();
 
-        //Iterate through k:
-            //Send tasks to assigned nodes
-            
-        //Fill pendingBlocks accordingly
+        //----> Find closest perfect square that divides all dimensions
+        int gridSize = 1;
+        for(int i=1; i <= std::min({a.getRows(), b.getColumns(), a.getColumns()}); ++i) {
+            if(a.getRows()%i==0 && b.getRows()%i==0 && a.getColumns()%i==0){
+                gridSize = i;
+                if(sqrt(nodeCount) <= i)
+                    break;
+            }
+        }
+        
+        //Iterate through steps
+        int counter = 0;
+        int taskId = 0;
+        for(int i=0; i<gridSize; i++){
+            for(int j=0;j<gridSize;j++){
+                taskId++;
+                
+                for(int k=0; k<gridSize;k++){
+                    node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],a.getSubmatrix(i*a.getRows()/gridSize,k*a.getColumns()/gridSize,(i+1)*a.getRows()/gridSize-1,(k+1)*a.getColumns()/gridSize-1),b.getSubmatrix(k*b.getRows()/gridSize,j*b.getColumns()/gridSize,(k+1)*b.getRows()/gridSize-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,gridSize,to_string(taskId),uid);
+                }
+
+                counter++;
+                pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
+            }
+        }
     }
 }
 
@@ -240,8 +258,19 @@ void Distributor<T>::handleResultResponse(Message m){
     std::unique_lock<std::mutex> lock(locks[uid]);
 
     if(object==SERIALIZED_TYPE_MATRIX){
-        //LATER
-        //....
+        Matrix<T> result = Serializer::unserializeMatrix<T>(m.getContent());
+
+        cout << "[handle-result] Extracted submatrix: "<< endl;
+        result.show();
+        cout << "[handle-result] Inserting..." << endl;
+        if(storedPartialResults.find(uid)!=storedPartialResults.end()){
+            storedPartialResults.at(uid).putSubmatrix(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]), result);
+            std::set<std::pair<int, int> >::iterator it = pendingBlocks[uid].find(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+            if(it!=pendingBlocks[uid].end()){
+                cout << "[handle-result] Removing result from pending" << endl;
+                pendingBlocks.at(uid).erase(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+            }
+        }
     }
     else if(object==SERIALIZED_TYPE_ELEMENT){
         T element;
