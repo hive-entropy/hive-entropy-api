@@ -31,7 +31,7 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
         void registerAsynchronousMessageHandler(string uri, HttpMethod m, Message (*func)(Message m));
 
-        template<void(*F)(Message)>
+        template<Message(*F)(Message)>
         void registerMessageHandler(string uri, HttpMethod method);
 
         void keepAlive();
@@ -45,7 +45,7 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
 //-----------------------
 //Templated methods
 
-template<void(*F)(Message)>
+template<Message(*F)(Message)>
 void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
     coap_request_t coapMethod;
 
@@ -68,7 +68,8 @@ void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
 
     coap.addResourceHandler(uri, coapMethod, [](coap_context_t *context, coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token, coap_string_t *query, coap_pdu_t *response){
         Message inputMessage(session, request);
-        F(inputMessage);
+        Message output = F(inputMessage);
+        output.fillResponse(resource,session,request,token,response);
     });
 };
 

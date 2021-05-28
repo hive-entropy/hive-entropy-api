@@ -125,15 +125,6 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     peer = tempPeerHost+":"+to_string(htons(sess->addr_info.remote.addr.sin.sin_port));
 }
 
-Message::Message(coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token,
-                 coap_pdu_t *response) : Message() {
-    data.resource = resource;
-    data.session = session;
-    data.request = request;
-    data.token = token;
-    data.response = response;
-}
-
 Message::~Message(){}
 
 std::map<Headers,std::string> Message::getHeaders(){
@@ -317,24 +308,7 @@ std::string Message::getPeer(){
     return peer;
 }
 
-void Message::fillResponse() {
-    uint8_t coapMethod;
-    switch (httpMethod){
-        case HttpMethod::OK:
-            coapMethod = COAP_RESPONSE_CODE_OK;
-        break;
-        case HttpMethod::NOT_FOUND:
-            coapMethod = COAP_RESPONSE_CODE_NOT_FOUND;
-        break;
-        case HttpMethod::BAD_REQUEST:
-            coapMethod = COAP_RESPONSE_CODE_BAD_REQUEST;
-        break;
-        default:
-            throw "Response code not available";
-    }
-
-    data.response->code = coapMethod;
-
+void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
     if(!headers.empty()){
         coap_optlist_t* chain = NULL;
 
@@ -383,12 +357,12 @@ void Message::fillResponse() {
                 throw "Couldn't insert passed option";
         }
 
-        if(!coap_add_optlist_pdu(data.response,&chain))
+        if(!coap_add_optlist_pdu(response,&chain))
                 throw "Could not add option list";
     }
 
     //====ADD CONTENT====
      if(!content.empty())
-        if(coap_add_data_large_response(data.resource, data.session, data.request, data.response, data.token, NULL, COAP_MEDIATYPE_ANY, -1, 0, content.length(), reinterpret_cast<const uint8_t*>(content.c_str()), NULL, NULL) == 0)
+        if(coap_add_data_large_response(resource, sess, request, response, tok, NULL, COAP_MEDIATYPE_ANY, -1, 0, content.length(), reinterpret_cast<const uint8_t*>(content.c_str()), NULL, NULL) == 0)
             throw "Unable to add content to the message";
 }

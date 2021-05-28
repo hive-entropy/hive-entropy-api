@@ -97,7 +97,6 @@ Message ResponseBuilder::matrixMultiplicationResultFragmentMessage(string calcul
     m.addHeader(Headers::INSERT_AT_X,std::to_string(startRow));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(startColumn));
 
-    m.fillResponse();
     return m;
 }
 
@@ -117,7 +116,6 @@ Message ResponseBuilder::matrixMultiplicationResultFragmentMessage(string calcul
     m.addHeader(Headers::INSERT_AT_X,std::to_string(insertX));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertY));
 
-    m.fillResponse();
     return m;
 }
 

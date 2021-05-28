@@ -6,7 +6,6 @@ Message ResponseBuilder::heartbeatMessage(){
     m.setHttpMethod(HttpMethod::OK);
     m.addHeader(Headers::PURPOSE,PURPOSE_HEALTH);
 
-    m.fillResponse();
     return m;
 }
 
@@ -18,7 +17,6 @@ Message ResponseBuilder::hardwareMessage(){
 
     m.setContent("No info for now");
 
-    m.fillResponse();
     return m;
 }
 
@@ -29,6 +27,5 @@ Message ResponseBuilder::assistanceResponseMessage(bool answer){
     m.addHeader(Headers::PURPOSE,PURPOSE_ASSISTANCE);
     m.addHeader(Headers::ASSISTANCE_RESPONSE,std::to_string(answer));
 
-    m.fillResponse();
     return m;
 }
