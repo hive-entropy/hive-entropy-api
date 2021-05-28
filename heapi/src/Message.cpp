@@ -6,9 +6,9 @@ Message::Message(){
     headers = std::map<Headers,std::string>();
 }
 
-Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
+Message::Message(coap_session_t* sess, const coap_pdu_t* pdu){
     //TYPE
-    switch(pdu->type){
+    switch(coap_pdu_get_type(pdu)){
         case COAP_MESSAGE_CON:
             type = MessageType::CONFIRMABLE;
         break;
@@ -24,17 +24,17 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     }
 
     //METHOD
-     switch(pdu->code){
-        case COAP_REQUEST_GET:
+     switch(coap_pdu_get_code(pdu)){
+        case COAP_REQUEST_CODE_GET:
             httpMethod = HttpMethod::GET;
         break;
-        case COAP_REQUEST_POST:
+        case COAP_REQUEST_CODE_POST:
             httpMethod = HttpMethod::POST;
         break;
-        case COAP_REQUEST_PUT:
+        case COAP_REQUEST_CODE_PUT:
             httpMethod = HttpMethod::PUT;
         break;
-        case COAP_REQUEST_DELETE:
+        case COAP_REQUEST_CODE_DELETE:
             httpMethod = HttpMethod::DELETE;
         break;
         case COAP_RESPONSE_CODE_OK:
@@ -59,7 +59,7 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
 
         std::string optVal(reinterpret_cast<const char*>(coap_opt_value(current)),coap_opt_length(current));
 
-        switch(iter.type){
+        switch(iter.number){
             case 2048:
                 headers.insert(std::pair<Headers,std::string>(Headers::PURPOSE,optVal));
             break;
@@ -104,7 +104,8 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     //CONTENT
 
     size_t bodySize;
-    uint8_t * data;
+    const uint8_t * data;
+    
     if(coap_get_data(pdu,&bodySize,&data)){
         std::string tempContent(reinterpret_cast<const char*>(data),bodySize);
         if(tempContent.length()>0){
@@ -114,15 +115,15 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
 
     //DEST
     char dest_buf[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET,&(sess->addr_info.local.addr.sin.sin_addr),dest_buf,INET_ADDRSTRLEN);
+    inet_ntop(AF_INET,&(coap_session_get_addr_local(sess)->addr.sin.sin_addr),dest_buf,INET_ADDRSTRLEN);
     std::string tempHost(dest_buf);
-    dest = tempHost+":"+to_string(htons(sess->addr_info.local.addr.sin.sin_port));
+    dest = tempHost+":"+to_string(htons(coap_session_get_addr_local(sess)->addr.sin.sin_port));
 
     //PEER
     char peer_buf[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET,&(sess->addr_info.remote.addr.sin.sin_addr),peer_buf,INET_ADDRSTRLEN);
+    inet_ntop(AF_INET,&(coap_session_get_addr_remote(sess)->addr.sin.sin_addr),peer_buf,INET_ADDRSTRLEN);
     std::string tempPeerHost(peer_buf);
-    peer = tempPeerHost+":"+to_string(htons(sess->addr_info.remote.addr.sin.sin_port));
+    peer = tempPeerHost+":"+to_string(htons(coap_session_get_addr_remote(sess)->addr.sin.sin_port));
 }
 
 Message::~Message(){}
@@ -173,9 +174,8 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
     // if(!httpMethod||!type)
     //     throw "You must specify HTTP Method and Message type";
 
-    coap_new_pdu(sess);
-
-    uint8_t coapType, coapMethod;
+    coap_pdu_type_t coapType;
+    coap_pdu_code_t coapMethod;
 
     switch (type){
         case MessageType::CONFIRMABLE:
@@ -194,16 +194,16 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
     switch (httpMethod){
         case HttpMethod::GET:
-            coapMethod = COAP_REQUEST_GET;
+            coapMethod = COAP_REQUEST_CODE_GET;
         break;
         case HttpMethod::POST:
-            coapMethod = COAP_REQUEST_POST;
+            coapMethod = COAP_REQUEST_CODE_POST;
         break;
         case HttpMethod::PUT:
-            coapMethod = COAP_REQUEST_PUT;
+            coapMethod = COAP_REQUEST_CODE_PUT;
         break;
         case HttpMethod::DELETE:
-            coapMethod = COAP_REQUEST_DELETE;
+            coapMethod = COAP_REQUEST_CODE_DELETE;
         break;
         case HttpMethod::OK:
             coapMethod = COAP_RESPONSE_CODE_OK;
@@ -218,7 +218,7 @@ coap_pdu_t* Message::toCoapMessage(coap_session_t* sess){
 
     coap_optlist_t *optlist_chain = NULL;
 
-    coap_pdu_t* transformed = coap_pdu_init(coapType,coapMethod,coap_new_message_id(sess),coap_session_max_pdu_size(sess));
+    coap_pdu_t* transformed = coap_new_pdu(coapType,coapMethod,sess);
 
     //====TOKEN====
     size_t toklen;
@@ -308,7 +308,7 @@ std::string Message::getPeer(){
     return peer;
 }
 
-void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
+void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_pdu_t* response){
     if(!headers.empty()){
         coap_optlist_t* chain = NULL;
 
@@ -363,6 +363,6 @@ void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap
 
     //====ADD CONTENT====
      if(!content.empty())
-        if(coap_add_data_large_response(resource, sess, request, response, tok, NULL, COAP_MEDIATYPE_ANY, -1, 0, content.length(), reinterpret_cast<const uint8_t*>(content.c_str()), NULL, NULL) == 0)
+        if(coap_add_data_large_response(resource, sess, request, response, NULL, COAP_MEDIATYPE_ANY, -1, 0, content.length(), reinterpret_cast<const uint8_t*>(content.c_str()), NULL, NULL) == 0)
             throw "Unable to add content to the message";
 }

@@ -1,10 +1,10 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+#include <coap3/coap.h>
+
 #include <string>
 #include <map>
-
-#include <coap2/coap.h>
 
 #include "Matrix.h"
 
@@ -81,7 +81,7 @@ class Message{
          * @param pdu The pdu structure of the message.
          * @param token The optional token to use.
          */
-        Message(coap_session_t* sess, coap_pdu_t* pdu);
+        Message(coap_session_t* sess, const coap_pdu_t* pdu);
 
         /**
          * @brief Construct a new Message object from CoAP message data.
@@ -174,7 +174,7 @@ class Message{
         /**
          * @brief Fills a response PDU with message data.
          */
-        void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response);
+        void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_pdu_t* response);
 
         /**
          * @brief Get the Http Method of the message.

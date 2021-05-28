@@ -124,7 +124,6 @@ void CoapEndpoint::send(Message m){
 }
 
 void CoapEndpoint::endSession(string uri){
-	coap_session_free(activeSessions.at(uri));
 	activeSessions.erase(uri);
 }
 

@@ -49,7 +49,7 @@ class Distributor{
         static std::vector<std::string> peerAddresses;
         static std::map<std::string, Matrix<T>> storedPartialResults; //Cleanup
 
-        static coap_response_t handleResponse(coap_context_t *context, coap_session_t *session, coap_pdu_t *sent, coap_pdu_t *received, const coap_mid_t id);
+        static coap_response_t handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id);
         static void handleResultResponse(Message m);
         static void handleAssistanceResponse(Message m);
         static void handleHardwareResponse(Message m);
@@ -89,6 +89,9 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     node->registerResponseHandler(handleResponse);
     configure(Parameter::ASSISTANCE_TIMEOUT,5);
     configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,12);
+    //peerAddresses.push_back("192.168.1.57");
+    peerAddresses.push_back("192.168.1.42:9999");
+    peerAddresses.push_back("192.168.1.96:9999");
 }
 
 template<typename T>
@@ -141,7 +144,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                 else{
                     pendingBlocks[uid].insert(std::pair<int,int>(i,j));
                     node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],first,second,uid);
-                    cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peerAddresses[counter%nodeCount] << endl;
+                    //cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peerAddresses[counter%nodeCount] << endl;
                 }
                 counter++;
             }
@@ -223,7 +226,7 @@ void Distributor<T>::configure(Parameter p, int value){
 }
 
 template<typename T>
-coap_response_t Distributor<T>::handleResponse(coap_context_t *context, coap_session_t *session, coap_pdu_t *sent, coap_pdu_t *received, const coap_mid_t id){
+coap_response_t Distributor<T>::handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id){
     Message m(session,received);
 
     std::string purpose = m.getHeaders()[Headers::PURPOSE];
