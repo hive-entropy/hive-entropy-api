@@ -41,6 +41,7 @@ add_library(HiveEntropyAPI
         src/HiveEntropyNode.cpp
         src/ResponseBuilder.cpp
         src/MessageHandler.cpp
+        src/Hardware.cpp
         #src/HiveEntropyNodeInterface.cpp
         )
 

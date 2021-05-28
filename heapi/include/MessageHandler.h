@@ -114,6 +114,13 @@ static std::string getAvailableNode(){
     return "";
 }
 
+static bool divideCalculInTasksCannon(HiveEntropyNode* node, Matrix<float> A, Matrix<float> B, std::string calculationId){
+    return true;
+    
+}
+
+
+
 static bool divideCalculInTasks(HiveEntropyNode* node, Matrix<float> A, Matrix<float> B, std::string calculationId){
     // test row col pr l'instant
     
@@ -141,6 +148,7 @@ static bool divideCalculInTasks(HiveEntropyNode* node, Matrix<float> A, Matrix<f
             tasklist.push_back(""+taskId);
             //MessageHandler::lockTask(nodeAdress, calculationId, ""+taskId);
             node->sendMatrixMultiplicationTask("coap://"+nodeAdress,Row<float>(9,i,A.getRow(i)),Column<float>(9,j,B.getColumn(j)),calculationId, ""+taskId);
+            
             nodeAdress = "";
             sec = 0;
             taskId++;
