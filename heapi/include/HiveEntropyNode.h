@@ -67,7 +67,7 @@ void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
             throw "Unknown HTTP Method";
     }
 
-    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_string_t *query, coap_pdu_t *response){
+    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
         Message inputMessage(session, request);
         Message output = F(inputMessage);
         output.fillResponse(resource,session,request,response);
@@ -95,7 +95,7 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
             throw "Unknown HTTP Method";
     }
 
-    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_string_t *query, coap_pdu_t *response){
+    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
         if(request){
             coap_async_t *async;
             coap_bin_const_t token = coap_pdu_get_token(request);

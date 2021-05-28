@@ -174,7 +174,7 @@ class Message{
         /**
          * @brief Fills a response PDU with message data.
          */
-        void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_pdu_t* response);
+        void fillResponse(coap_resource_t* resource, coap_session_t* sess, const coap_pdu_t* request, coap_pdu_t* response);
 
         /**
          * @brief Get the Http Method of the message.

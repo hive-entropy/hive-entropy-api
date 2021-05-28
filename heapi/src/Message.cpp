@@ -308,7 +308,7 @@ std::string Message::getPeer(){
     return peer;
 }
 
-void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_pdu_t* response){
+void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, const coap_pdu_t* request, coap_pdu_t* response){
     if(!headers.empty()){
         coap_optlist_t* chain = NULL;
 
