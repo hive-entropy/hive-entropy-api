@@ -64,6 +64,14 @@ enum class HttpMethod : int{
     BAD_REQUEST=7
 };
 
+struct MessageData {
+    coap_resource_t *resource;
+    coap_session_t *session;
+    coap_pdu_t *request;
+    coap_binary_t *token;
+    coap_pdu_t *response;
+};
+
 /**
  * @brief Represents an application-level message that can transit through the network.
  */
@@ -82,6 +90,18 @@ class Message{
          * @param token The optional token to use.
          */
         Message(coap_session_t* sess, coap_pdu_t* pdu);
+
+        /**
+         * @brief Construct a new Message object from CoAP message data.
+         *
+         * @param resource
+         * @param session The current session.
+         * @param request
+         * @param token The optional token to use.
+         * @param response
+         */
+        explicit Message(coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token,
+                         coap_pdu_t *response);
 
         /**
          * @brief Destroy the Message object
@@ -161,10 +181,8 @@ class Message{
 
         /**
          * @brief Fills a response PDU with message data.
-         * 
-         * @param response The response to fill using the message.
          */
-        void fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response);
+        void fillResponse();
 
         /**
          * @brief Get the Http Method of the message.
@@ -181,6 +199,7 @@ class Message{
         map<Headers,string> headers;
         std::string content;
         MessageType type;
+        MessageData data;
 };
 
 #endif

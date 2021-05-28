@@ -56,9 +56,9 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
 
     coap_opt_t* current = coap_option_next(&iter);
     while(current!=NULL){
-        
+
         std::string optVal(reinterpret_cast<const char*>(coap_opt_value(current)),coap_opt_length(current));
-        
+
         switch(iter.type){
             case 2048:
                 headers.insert(std::pair<Headers,std::string>(Headers::PURPOSE,optVal));
@@ -125,6 +125,15 @@ Message::Message(coap_session_t* sess, coap_pdu_t* pdu){
     peer = tempPeerHost+":"+to_string(htons(sess->addr_info.remote.addr.sin.sin_port));
 }
 
+Message::Message(coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token,
+                 coap_pdu_t *response) : Message() {
+    data.resource = resource;
+    data.session = session;
+    data.request = request;
+    data.token = token;
+    data.response = response;
+}
+
 Message::~Message(){}
 
 std::map<Headers,std::string> Message::getHeaders(){
@@ -143,10 +152,10 @@ HttpMethod Message::getHttpMethod(){
     return httpMethod;
 }
 
+
 std::string Message::getContent(){
     return content;
 }
-
 
 void Message::addHeader(Headers h, string value){
     headers.insert(std::pair<Headers,std::string>(h,value));
@@ -308,7 +317,7 @@ std::string Message::getPeer(){
     return peer;
 }
 
-void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap_pdu_t* request, coap_binary_t* tok, coap_pdu_t* response){
+void Message::fillResponse() {
     uint8_t coapMethod;
     switch (httpMethod){
         case HttpMethod::OK:
@@ -324,7 +333,7 @@ void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap
             throw "Response code not available";
     }
 
-    response->code = coapMethod;
+    data.response->code = coapMethod;
 
     if(!headers.empty()){
         coap_optlist_t* chain = NULL;
@@ -374,12 +383,12 @@ void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, coap
                 throw "Couldn't insert passed option";
         }
 
-        if(!coap_add_optlist_pdu(response,&chain))
+        if(!coap_add_optlist_pdu(data.response,&chain))
                 throw "Could not add option list";
     }
 
     //====ADD CONTENT====
      if(!content.empty())
-        if(coap_add_data_large_response(resource,sess,request,response,tok,NULL,COAP_MEDIATYPE_ANY,-1,0,content.length(),reinterpret_cast<const uint8_t*>(content.c_str()),NULL,NULL)==0)
+        if(coap_add_data_large_response(data.resource, data.session, data.request, data.response, data.token, NULL, COAP_MEDIATYPE_ANY, -1, 0, content.length(), reinterpret_cast<const uint8_t*>(content.c_str()), NULL, NULL) == 0)
             throw "Unable to add content to the message";
 }

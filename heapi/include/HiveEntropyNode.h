@@ -1,6 +1,7 @@
 #ifndef HIVE_ENTROPY_NODE_H
 #define HIVE_ENTROPY_NODE_H
 
+#include <functional>
 #include "Matrix.h"
 #include "Message.h"
 #include "CoapEndpoint.h"
@@ -30,7 +31,11 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
         void registerAsynchronousMessageHandler(string uri, HttpMethod m, Message (*func)(Message m));
 
+        template<void(*F)(Message)>
+        void registerMessageHandler(string uri, HttpMethod method);
+
         void keepAlive();
+
     private:
         std::map<std::pair<std::string,HttpMethod>,Message (*)(Message)> asyncHandlers;
         CoapEndpoint coap;
@@ -39,6 +44,33 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
 
 //-----------------------
 //Templated methods
+
+template<void(*F)(Message)>
+void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
+    coap_request_t coapMethod;
+
+    switch (method){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_GET;
+            break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_POST;
+            break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_PUT;
+            break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_DELETE;
+            break;
+        default:
+            throw "Unknown HTTP Method";
+    }
+
+    coap.addResourceHandler(uri, coapMethod, [](coap_context_t *context, coap_resource_t *resource, coap_session_t *session, coap_pdu_t *request, coap_binary_t *token, coap_string_t *query, coap_pdu_t *response){
+        Message inputMessage(session, request);
+        F(inputMessage);
+    });
+};
 
 template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){

@@ -33,14 +33,14 @@ class GlobalContext{
          * @param id The identifier of the object to retreive.
          * @return C The retrieved object.
          */
-        static C* get(std::string id);
+        static C& get(std::string id);
 
     private:
         static std::map<std::string,C> repository;
 };
 
 template<class C>
-std::map<std::string,C> GlobalContext<C>::repository = std::map<std::string,C>();
+std::map<std::string, C> GlobalContext<C>::repository = std::map<std::string,C>();
 
 template<class C>
 void GlobalContext<C>::registerObject(std::string id, C o){
@@ -48,22 +48,18 @@ void GlobalContext<C>::registerObject(std::string id, C o){
 }
 
 template<class C>
-C* GlobalContext<C>::get(std::string id){
-    C* returnValue = nullptr;
-    typename std::map<std::string, C>::iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
-    if (it != GlobalContext<C>::repository.end()){ // If an object was found
-        returnValue = &it->second; // Then, return the object
-    } // Else, return a null pointer
-    return returnValue;
+C& GlobalContext<C>::get(std::string id){
+    try {
+        return repository.at(id);
+    }
+    catch (std::out_of_range const &exception) {
+        throw exception;
+    }
 }
 
 template<class C>
 void GlobalContext<C>::unregisterObject(std::string id) {
-    typename std::map<std::string, C>::iterator it = GlobalContext<C>::repository.find(id); // Search an object with the given id
-    if (it != GlobalContext<C>::repository.end())
-    { // If an object was found
-        GlobalContext<C>::repository.erase(it->first); // Then, delete the object
-    }
+    repository.erase(id);
 }
 
 #endif
