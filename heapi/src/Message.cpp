@@ -309,6 +309,34 @@ std::string Message::getPeer(){
 }
 
 void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, const coap_pdu_t* request, coap_pdu_t* response){
+
+    coap_pdu_code_t coapMethod;
+
+    switch (httpMethod){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_CODE_GET;
+        break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_CODE_POST;
+        break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_CODE_PUT;
+        break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_CODE_DELETE;
+        break;
+        case HttpMethod::OK:
+            coapMethod = COAP_RESPONSE_CODE_OK;
+        break;
+        case HttpMethod::NOT_FOUND:
+            coapMethod = COAP_RESPONSE_CODE_NOT_FOUND;
+        break;
+        case HttpMethod::BAD_REQUEST:
+            coapMethod = COAP_RESPONSE_CODE_BAD_REQUEST;
+        break;
+    }
+    coap_pdu_set_code(response, coapMethod);
+
     if(!headers.empty()){
         coap_optlist_t* chain = NULL;
 

@@ -108,11 +108,16 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
                     return;
                 }
                 Message inputMessage(session, request);
-                std::thread t([](coap_async_t* async, Message input){
-                    Message output = F(input);
-                    coap_async_set_app_data(async,&output);
-                    coap_async_set_delay(async,1);
-                },async,inputMessage);
+                std::thread t([](coap_session_t* sess, coap_bin_const_t tok, Message input){
+                    Message* output  = new Message();
+                    *output = F(input);
+
+                    coap_async_t* async = coap_find_async(sess, tok);
+                    if(async){
+                        coap_async_set_app_data(async,output);
+                        coap_async_set_delay(async,1);
+                    }
+                },session,token,inputMessage);
                 t.detach();
                 return;
             }
@@ -123,7 +128,7 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
         async = coap_find_async(session, token);
 
         if(async){
-            Message* m = coap_async_get_app_data(async);
+            Message* m = (Message*) coap_async_get_app_data(async);
             m->fillResponse(resource,session,request,response);
         }
         else{
