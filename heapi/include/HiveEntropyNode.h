@@ -1,6 +1,7 @@
 #ifndef HIVE_ENTROPY_NODE_H
 #define HIVE_ENTROPY_NODE_H
 
+#include <functional>
 #include "Matrix.h"
 #include "Message.h"
 #include "CoapEndpoint.h"
@@ -18,7 +19,7 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         template<typename T>
         void sendMatrixMultiplicationTask(string target, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId);
         template<typename T>
-        void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId, string taskId);
+        void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId);
         template<typename T>
         void sendMatrixConvolutionTask(string target, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize);
 
@@ -27,13 +28,115 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void resolveNodeIdentities();
 
         void registerResponseHandler(coap_response_handler_t func);
-        void registerMessageHandler(string uri, HttpMethod method, coap_method_handler_t func);
+
+        template<Message(*F)(Message)>
+        void registerMessageHandler(string uri, HttpMethod method);
+
+        template<Message(*F)(Message)>
+        void registerAsynchronousHandler(string uri, HttpMethod method);
 
         void keepAlive();
+
     private:
+        std::map<std::pair<std::string,HttpMethod>,Message (*)(Message)> asyncHandlers;
         CoapEndpoint coap;
-        int banana=5;
 };
+
+
+//-----------------------
+//Templated methods
+
+template<Message(*F)(Message)>
+void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
+    coap_request_t coapMethod;
+
+    switch (method){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_GET;
+            break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_POST;
+            break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_PUT;
+            break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_DELETE;
+            break;
+        default:
+            throw "Unknown HTTP Method";
+    }
+
+    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
+        Message inputMessage(session, request);
+        Message output = F(inputMessage);
+        output.fillResponse(resource,session,request,response);
+    });
+};
+
+template<Message(*F)(Message)>
+void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method){
+    coap_request_t coapMethod;
+
+    switch (method){
+        case HttpMethod::GET:
+            coapMethod = COAP_REQUEST_GET;
+            break;
+        case HttpMethod::POST:
+            coapMethod = COAP_REQUEST_POST;
+            break;
+        case HttpMethod::PUT:
+            coapMethod = COAP_REQUEST_PUT;
+            break;
+        case HttpMethod::DELETE:
+            coapMethod = COAP_REQUEST_DELETE;
+            break;
+        default:
+            throw "Unknown HTTP Method";
+    }
+
+    coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
+        if(request){
+            coap_async_t *async;
+            coap_bin_const_t token = coap_pdu_get_token(request);
+            async = coap_find_async(session, token);
+
+            if (!async) {
+                async = coap_register_async(session, request,0);
+                if (async == NULL) {
+                    coap_pdu_set_code(response, COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE);
+                    return;
+                }
+                Message inputMessage(session, request);
+                std::thread t([](coap_session_t* sess, coap_bin_const_t tok, Message input){
+                    Message* output  = new Message();
+                    *output = F(input);
+
+                    coap_async_t* async = coap_find_async(sess, tok);
+                    if(async){
+                        coap_async_set_app_data(async,output);
+                        coap_async_set_delay(async,1);
+                    }
+                },session,token,inputMessage);
+                t.detach();
+                return;
+            }
+        }
+
+        coap_async_t *async;
+        coap_bin_const_t token = coap_pdu_get_token(request);
+        async = coap_find_async(session, token);
+
+        if(async){
+            Message* m = (Message*) coap_async_get_app_data(async);
+            m->fillResponse(resource,session,request,response);
+        }
+        else{
+            coap_pdu_set_code(response, COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE);
+            return;
+        }
+    });
+}
 
 template<typename T>
 void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){
@@ -46,7 +149,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
 
     m.setDest(uri+"task/multiplication/cannon");
     m.setHttpMethod(HttpMethod::POST);
-    m.setType(MessageType::NON_CONFIRMABLE);
+    m.setType(MessageType::CONFIRMABLE);
     std::vector<Matrix<T>> vec;
     vec.push_back(a);
     vec.push_back(b);
@@ -64,7 +167,7 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
 }
 
 template<typename T>
-void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId, string taskId){
+void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
@@ -79,7 +182,6 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
 
     m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_ROWCOL);
     m.addHeader(Headers::CALCULATION_ID,calculationId);
-    m.addHeader(Headers::TASK_ID,taskId);
     m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
     m.addHeader(Headers::INSERT_AT_X,std::to_string(row.getPosition()));
     m.addHeader(Headers::INSERT_AT_Y,std::to_string(col.getPosition()));

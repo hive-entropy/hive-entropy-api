@@ -43,7 +43,7 @@ cmake -Bbuild/ -S.
 
 #### Libcoap
 ```
-git clone --depth 1 --branch v4.3.0-rc1 git@github.com:obgm/libcoap.git
+git clone --depth 1 --branch v4.3.0-rc3 git@github.com:obgm/libcoap.git
 cd libcoap/
 cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OFF
 [sudo] cmake --build build/ --target install

@@ -87,17 +87,17 @@ Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(c
         case MatrixArchetype::ZEROS:
             for(int i=0;i<rows;i++)
                 for(int j=0;j<columns;j++)
-                    data[columns*i+j] = (T) 0.0;
+                    data[columns*i+j] = static_cast<T>(0.0);
         break;
         case MatrixArchetype::ONES:
             for(int i=0;i<rows;i++)
                 for(int j=0;j<columns;j++)
-                    data[columns*i+j] = (T) 1.0;
+                    data[columns*i+j] = static_cast<T>(1.0);
         break;
         case MatrixArchetype::ID:
             for(int i=0;i<rows;i++)
                 for(int j=0;j<columns;j++)
-                    data[columns*i+j] = (i==j)? (T) 1.0 : (T) 0.0;
+                    data[columns*i+j] = (i==j)? static_cast<T>(1.0) : static_cast<T>(0.0);
         break;
     }
 }
@@ -234,16 +234,16 @@ Matrix<T>& Matrix<T>::operator*=(Matrix<T> const& other){
         for(int i=0;i<other.elements;i++)
             trailedOther[i] = static_cast<float>(other.data[i]);
 
-        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,trailedData,this->rows,trailedOther,other.columns,0.0,trailedC_tab,other.columns);
+        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,trailedData,this->columns,trailedOther,other.columns,0.0,trailedC_tab,other.columns);
 
         for(int i=0;i<c.getElements();i++)
             c_tab[i] = static_cast<T>(trailedC_tab[i]);
     }
     else if(std::is_same<T,float>::value){
-        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<float*>(data),this->rows,reinterpret_cast<float*>(other.data),other.columns,0.0,reinterpret_cast<float*>(c_tab),other.columns);
+        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<float*>(data),this->columns,reinterpret_cast<float*>(other.data),other.columns,0.0,reinterpret_cast<float*>(c_tab),other.columns);
     }
     else if(std::is_same<T,double>::value){
-        cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<double*>(data),this->rows,reinterpret_cast<double*>(other.data),other.columns,0.0,reinterpret_cast<double*>(c_tab),other.columns);
+        cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<double*>(data),this->columns,reinterpret_cast<double*>(other.data),other.columns,0.0,reinterpret_cast<double*>(c_tab),other.columns);
     }
     else{
         throw "Matrix multiplication is not supported for this type";

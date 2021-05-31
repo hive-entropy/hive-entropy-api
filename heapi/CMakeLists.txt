@@ -40,9 +40,6 @@ add_library(HiveEntropyAPI
         src/CoapEndpoint.cpp
         src/HiveEntropyNode.cpp
         src/ResponseBuilder.cpp
-        src/MessageHandler.cpp
-        src/Hardware.cpp
-        #src/HiveEntropyNodeInterface.cpp
         )
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
@@ -71,7 +68,7 @@ target_compile_options(HiveEntropyAPI
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
 target_link_libraries(HiveEntropyAPI
-        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-2
+        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3
 )
 
 ##############################################

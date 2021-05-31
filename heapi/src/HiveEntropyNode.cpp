@@ -1,13 +1,9 @@
+#include <functional>
 #include "HiveEntropyNode.h"
 #include "Serializer.h"
 #include "GlobalContext.h"
-#include "MessageHandler.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri){
-    registerResponseHandler(MessageHandler::handleMessage);
-    std::map<std::string, bool> adressList;
-    GlobalContext<std::map<std::string, bool>>::registerObject("adress", adressList);
-}
+HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri) {}
 
 HiveEntropyNode::~HiveEntropyNode(){
     //delete &coap;
@@ -54,31 +50,8 @@ void HiveEntropyNode::registerResponseHandler(coap_response_handler_t func){
     coap.registerResponseHandler(func);
 }
 
-void HiveEntropyNode::registerMessageHandler(string key, HttpMethod method, coap_method_handler_t func){
-    coap_request_t coapMethod;
-
-    switch (method){
-        case HttpMethod::GET:
-            coapMethod = COAP_REQUEST_GET;
-        break;
-        case HttpMethod::POST:
-            coapMethod = COAP_REQUEST_POST;
-        break;
-        case HttpMethod::PUT:
-            coapMethod = COAP_REQUEST_PUT;
-        break;
-        case HttpMethod::DELETE:
-            coapMethod = COAP_REQUEST_DELETE;
-        break;
-        default:
-            throw "Unknown HTTP Method";
-    }
-
-    coap.addResourceHandler(key, coapMethod, func);
-}
-
 void HiveEntropyNode::keepAlive(){
     coap.waitForDeath();
 };
 
-//TODO Add async handler registration
+// TODO: Add async handler registration

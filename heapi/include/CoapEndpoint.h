@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 
-#include <coap2/coap.h>
+#include <coap3/coap.h>
 
 #include "Message.h"
 
