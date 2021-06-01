@@ -38,15 +38,20 @@ Tous les aspects de programmation concurrente, réseau/protocoles, découpage de
 git clone --depth 1 --branch v0.3.14 git@github.com:xianyi/OpenBLAS.git
 cd OpenBLAS/
 cmake -Bbuild/ -S.
-[sudo] cmake --build build/ --target install 
+sudo cmake --build build/ --target install 
 ```
+
+À noter que l'option `-DBUILD_WITHOUT_LAPACK=ON` peut être passée lors de la première commande CMake pour éviter la compilation de LAPACK. Cependant cette option crée une erreur si aucun compilateur fortran n'est présent sur le système.
+
+Sur Raspberry Pi 3, les options définies dans le CMakeList.txt du projet OpenBLAS ne sont pas forcément adaptées.
+L'option `-DCCOMMON_OPT="-mfpu=vfpv3 -march=armv7-a -mfpu=neon -lpthread"` doit être ajoutée pour pouvoir compiler correctement.
 
 #### Libcoap
 ```
 git clone --depth 1 --branch v4.3.0-rc3 git@github.com:obgm/libcoap.git
 cd libcoap/
-cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF -DUSE_VENDORED_TINYDTLS=OFF
-[sudo] cmake --build build/ --target install
+cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF
+sudo cmake --build build/ --target install
 ```
 
 ## Utilisation
