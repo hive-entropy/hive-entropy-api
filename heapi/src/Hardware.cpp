@@ -1,4 +1,4 @@
-#include "hardware.h"
+#include "Hardware.h"
 #include <sys/sysinfo.h>
 #include <sstream>
 #include <iostream>
@@ -11,15 +11,26 @@ using namespace std;
 int getProcNumber = get_nprocs();
 #endif
 
+void execUnixCMD(const char* cmd, char * result){
+    FILE *fp;
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+    printf("Failed to run command\n" );
+    }
+
+    /* Read the output a line at a time - output it. */
+    while (fgets(result, sizeof(result), fp) != NULL) {
+    }
+    /* close */
+    pclose(fp);
+}
+
 Hardware::Hardware(){
-    processorCoreNumber = getProcessorCoreNumber();
-    //processorCoreNumber = 5;
-    processorFrequency = getProcessorFrequency();
-    //cout << endl << processorFrequency << endl;
-    //processorOccupation = 0.2;
-    processorOccupation = getprocessorOccupation();
-    ramSize = getramSize();
-    ramOccupation = getRamOccupation();
+    processorCoreNumber = findProcessorCoreNumber();
+    processorFrequency = findProcessorFrequency();
+    processorOccupation = findProcessorOccupation();
+    ramSize = findRamSize();
+    ramOccupation = findRamOccupation();
 }
 
 Hardware::Hardware(std::string infos){
@@ -49,22 +60,8 @@ std::string Hardware::toString(){
                         to_string(ramOccupation);
     return infos;
 }
-void execUnixCMD(const char* cmd, char * result){
-    FILE *fp;
-    fp = popen(cmd, "r");
-    if (fp == NULL) {
-    printf("Failed to run command\n" );
-    }
 
-    /* Read the output a line at a time - output it. */
-    while (fgets(result, sizeof(result), fp) != NULL) {
-    }
-    /* close */
-    pclose(fp);
-
-
-}
-float Hardware::getProcessorCoreNumber(){
+float Hardware::findProcessorCoreNumber(){
     
     char socket[sizeof(float)], core[sizeof(float)];
 
@@ -78,7 +75,7 @@ float Hardware::getProcessorCoreNumber(){
      return numberOfSocket * numberOfCore;
 }
 
-float Hardware::getProcessorFrequency(){
+float Hardware::findProcessorFrequency(){
 
     char frequency[10];
 
@@ -87,7 +84,8 @@ float Hardware::getProcessorFrequency(){
     float cpuFrequency = stof(frequency);
      return cpuFrequency;
 }
-float Hardware::getprocessorOccupation(){
+
+float Hardware::findProcessorOccupation(){
 
     char occupation[10];
     execUnixCMD("iostat | grep -P '^\\s*\\d' | awk '{print $6} '", occupation);
@@ -97,16 +95,37 @@ float Hardware::getprocessorOccupation(){
     return cpuOccupation;
 }
 
-float Hardware::getramSize(){
+float Hardware::findRamSize(){
     char ram[10];
     execUnixCMD("free -m | grep Mem | awk '{print $2}'", ram);
     float ramSize = stof(ram);
     return ramSize;
 }
 
-float Hardware::getRamOccupation(){
+float Hardware::findRamOccupation(){
     char usedRam[10];
     execUnixCMD("free -m | grep Mem | awk '{print $4}'", usedRam);
     float ramOccupation = stof(usedRam) *100 / ramSize;
     return ramOccupation;
 }
+
+float Hardware::getProcessorCoreNumber(){
+    return processorCoreNumber;
+}
+
+float Hardware::getProcessorFrequency(){
+    return processorFrequency;
+}
+
+float Hardware::getProcessorOccupation(){
+    return processorOccupation;
+}
+
+float Hardware::getRamSize(){
+    return ramSize;
+}
+
+float Hardware::getRamOccupation(){
+    return ramOccupation;
+}
+
