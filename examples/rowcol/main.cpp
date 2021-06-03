@@ -1,4 +1,4 @@
-#include <HiveEntropyAPI/full.h>
+#include <full.h>
 
 int main(void){
 
