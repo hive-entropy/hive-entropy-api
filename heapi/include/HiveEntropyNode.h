@@ -19,6 +19,8 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         template<typename T>
         void sendMatrixMultiplicationTask(string target, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId);
         template<typename T>
+        void sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, string calculationId);
+        template<typename T>
         void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId);
         template<typename T>
         void sendMatrixConvolutionTask(string target, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize);
@@ -108,16 +110,16 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
                     return;
                 }
                 Message inputMessage(session, request);
-                std::thread t([](coap_session_t* sess, coap_bin_const_t tok, Message input){
+                std::thread t([](coap_session_t* sess, coap_bin_const_t* tok, Message input){
                     Message* output  = new Message();
                     *output = F(input);
 
-                    coap_async_t* async = coap_find_async(sess, tok);
+                    coap_async_t* async = coap_find_async(sess, *tok);
                     if(async){
                         coap_async_set_app_data(async,output);
                         coap_async_set_delay(async,1);
                     }
-                },session,token,inputMessage);
+                }, session, &token, inputMessage);
                 t.detach();
                 return;
             }
@@ -160,6 +162,32 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
     m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
     m.addHeader(Headers::STEPS,std::to_string(steps));
     m.addHeader(Headers::TASK_ID,taskId);
+    m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
+    m.addHeader(Headers::INSERT_AT_Y,to_string(insertY));
+
+    send(m);
+}
+
+template<typename T>
+void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, string calculationId){
+    Message m;
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"task/multiplication/rowcol");
+    m.setHttpMethod(HttpMethod::POST);
+    m.setType(MessageType::CONFIRMABLE);
+    std::vector<Matrix<T>> vec;
+    vec.push_back(a);
+    vec.push_back(b);
+    m.setContent(Serializer::serialize(vec));
+
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRICES);
+    m.addHeader(Headers::CALCULATION_ID,calculationId);
+    m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
     m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
     m.addHeader(Headers::INSERT_AT_Y,to_string(insertY));
 

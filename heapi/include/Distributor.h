@@ -11,13 +11,17 @@
 
 enum MultiplicationMethod{
     CANNON,
-    ROW_COLUMN
+    ROW_COLUMN,
+    MULTIPLE_ROW_COLUMN
 };
 
 enum Parameter{
     ASSISTANCE_TIMEOUT,
     ASSISTANCE_MAX_PARTICIPANTS,
-    UID_SEED
+    UID_SEED,
+    MAX_THREADS,
+    FRESHNESS,
+    RESULT_TIMEOUT
 };
 
 template<typename T>
@@ -91,7 +95,7 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,12);
     //peerAddresses.push_back("192.168.1.57");
     peerAddresses.push_back("192.168.1.42:9999");
-    peerAddresses.push_back("192.168.1.96:9999");
+    //peerAddresses.push_back("192.168.1.96:9999");
 }
 
 template<typename T>
@@ -177,6 +181,30 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
 
                 counter++;
                 pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
+            }
+        }
+    }
+    else if(m==MultiplicationMethod::MULTIPLE_ROW_COLUMN){
+        //----> Count assisters
+        int nodeCount = peerAddresses.size();
+
+        //----> Find closest perfect square that divides all dimensions
+        int gridSize = 1;
+        for(int i=1; i <= std::min({a.getRows(), b.getColumns(), a.getColumns()}); ++i) {
+            if(a.getRows()%i==0 && b.getRows()%i==0 && a.getColumns()%i==0){
+                gridSize = i;
+                if(sqrt(nodeCount) <= i)
+                    break;
+            }
+        }
+        
+        //Iterate through checkerboard
+        int counter = 0;
+        for(int i=0; i<gridSize; i++){
+            for(int j=0;j<gridSize;j++){ 
+                node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],a.getSubmatrix(i*a.getRows()/gridSize,0,(i+1)*a.getRows()/gridSize-1,a.getColumns()-1),b.getSubmatrix(0,j*b.getColumns()/gridSize,b.getRows()-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,uid);
+                pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
+                counter++;
             }
         }
     }
@@ -298,6 +326,7 @@ void Distributor<T>::handleResultResponse(Message m){
             if(it!=pendingBlocks[uid].end()){
                 cout << "[handle-result] Removing result from pending" << endl;
                 pendingBlocks.at(uid).erase(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+                cout << "[handle-result] "+std::to_string(pendingBlocks.at(uid).size())+" remaining to receive..." <<endl;
             }
         }
     }
