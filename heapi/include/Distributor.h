@@ -2,7 +2,7 @@
 #define DISTRIBUTOR_H 
 
 #include "HiveEntropyNode.h"
-
+#include "hardware.h"
 #include <mutex>
 #include <condition_variable>
 #include <set>
@@ -355,7 +355,12 @@ void Distributor<T>::handleAssistanceResponse(Message m){
 
 template<typename T>
 void Distributor<T>::handleHardwareResponse(Message m){
-    //LATER
+    std::string address = m.getPeer();
+    Hardware hw;
+    std::string specifications = m.getContent(); 
+    cout << "[handle-hardware] received specifications" << endl;
+    cout << specifications << std::endl;
+    
 }
 
 template<typename T>

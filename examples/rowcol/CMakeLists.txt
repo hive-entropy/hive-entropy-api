@@ -1,5 +1,3 @@
-find_package(HiveEntropyAPI REQUIRED)
-
 add_executable(rowcol
     main.cpp
 )
