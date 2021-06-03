@@ -54,4 +54,35 @@ void HiveEntropyNode::keepAlive(){
     coap.waitForDeath();
 };
 
+void HiveEntropyNode::sendHardwareSpecification(string uri){
+    Message m;
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"hardware");
+    m.setHttpMethod(HttpMethod::POST);
+    m.setType(MessageType::CONFIRMABLE);
+    m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
+    send(m);
+}
+
+void HiveEntropyNode::sendAskingHardwareSpecification(string uri){
+    Message m;
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"hardware");
+    m.setHttpMethod(HttpMethod::POST);
+    m.setType(MessageType::CONFIRMABLE);
+    m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
+    send(m);
+}
+
+
 // TODO: Add async handler registration

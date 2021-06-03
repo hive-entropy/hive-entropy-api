@@ -1,4 +1,5 @@
 #include "ResponseBuilder.h"
+#include "hardware.h"
 
 Message ResponseBuilder::heartbeatMessage(){
     Message m;
@@ -11,11 +12,12 @@ Message ResponseBuilder::heartbeatMessage(){
 
 Message ResponseBuilder::hardwareMessage(){
     Message m;
+    Hardware hw;
     m.setType(MessageType::ACK);
     m.setHttpMethod(HttpMethod::OK);
     m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
 
-    m.setContent("No info for now");
+    m.setContent(hw.toString());
 
     return m;
 }

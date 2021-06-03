@@ -1,6 +1,9 @@
 #include "hardware.h"
 #include <sys/sysinfo.h>
 #include <sstream>
+#include <iostream>
+#include<string>  
+using namespace std;
 
 #define UNIX
 #ifdef UNIX
@@ -21,12 +24,12 @@ Hardware::Hardware(std::string infos){
     size_t pos = 0;
     std::string delimiter = ":";
     std::string token;
-    int infosList[5];
+    float infosList[5];
     for (size_t i = 0; i < 5; i++)
     {
         pos = infos.find(delimiter);
         token = infos.substr(0, pos); 
-        infosList[i] = stoi(token);
+        infosList[i] = stof(token);
         infos.erase(0, pos + delimiter.length());
     }
     processorCoreNumber = infosList[0];
@@ -35,12 +38,13 @@ Hardware::Hardware(std::string infos){
     ramSize = infosList[3];
     ramOccupation = infosList[4];
 }
+Hardware::~Hardware(){}
 
 std::string Hardware::toString(){
-    std::string infos = processorCoreNumber + ":" + processorFrequency + ':' +
-                        processorOccupation + ':' +
-                        ramSize + ':' +
-                        ramOccupation + ':';
+    std::string infos = to_string(processorCoreNumber) + ":" + to_string(processorFrequency) + ':' +
+                        to_string(processorOccupation) + ':' +
+                        to_string(ramSize) + ':' +
+                        to_string(ramOccupation);
     return infos;
 }
 

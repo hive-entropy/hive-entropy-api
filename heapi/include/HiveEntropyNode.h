@@ -22,7 +22,8 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId);
         template<typename T>
         void sendMatrixConvolutionTask(string target, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize);
-
+        void sendHardwareSpecification(string uri);
+        void sendAskingHardwareSpecification(string uri);
         void checkLiveness(string target);
         void queryNodeAvailability();
         void resolveNodeIdentities();
@@ -188,6 +189,8 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
 
     send(m);
 }
+
+
 
 template<typename T>
 void HiveEntropyNode::sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize){

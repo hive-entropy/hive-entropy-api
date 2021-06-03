@@ -13,17 +13,17 @@ class Hardware
         Hardware(std::string infos);
         ~Hardware();
 
-        int processorCoreNumber;
-        int processorFrequency;
-        int processorOccupation;
-        int ramSize;
-        int ramOccupation;
+        float processorCoreNumber;
+        float processorFrequency;
+        float processorOccupation;
+        float ramSize;
+        float ramOccupation;
 
-        int getProcessorCoreNumber(){ return processorCoreNumber; }
-        int getProcessorFrequency(){ return processorFrequency;}
-        int getprocessorOccupation(){ return processorOccupation;}
-        int getramSize(){ return ramSize;}
-        int getramOccupation(){ return ramOccupation;}
+        float getProcessorCoreNumber(){ return processorCoreNumber; }
+        float getProcessorFrequency(){ return processorFrequency;}
+        float getprocessorOccupation(){ return processorOccupation;}
+        float getramSize(){ return ramSize;}
+        float getramOccupation(){ return ramOccupation;}
 
         std::string toString();
 
