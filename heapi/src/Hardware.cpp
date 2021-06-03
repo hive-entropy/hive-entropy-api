@@ -2,7 +2,8 @@
 #include <sys/sysinfo.h>
 #include <sstream>
 #include <iostream>
-#include<string>  
+#include <string>  
+#include <algorithm>
 using namespace std;
 
 #define UNIX
@@ -11,13 +12,14 @@ int getProcNumber = get_nprocs();
 #endif
 
 Hardware::Hardware(){
-    processorCoreNumber = 8;
-    processorFrequency = 2.5;
-    processorOccupation = 0.2;
-    ramSize = 8;
-    ramOccupation = 0.3;
-    
-
+    processorCoreNumber = getProcessorCoreNumber();
+    //processorCoreNumber = 5;
+    processorFrequency = getProcessorFrequency();
+    //cout << endl << processorFrequency << endl;
+    //processorOccupation = 0.2;
+    processorOccupation = getprocessorOccupation();
+    ramSize = getramSize();
+    ramOccupation = getRamOccupation();
 }
 
 Hardware::Hardware(std::string infos){
@@ -47,4 +49,64 @@ std::string Hardware::toString(){
                         to_string(ramOccupation);
     return infos;
 }
+void execUnixCMD(const char* cmd, char * result){
+    FILE *fp;
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+    printf("Failed to run command\n" );
+    }
 
+    /* Read the output a line at a time - output it. */
+    while (fgets(result, sizeof(result), fp) != NULL) {
+    }
+    /* close */
+    pclose(fp);
+
+
+}
+float Hardware::getProcessorCoreNumber(){
+    
+    char socket[sizeof(float)], core[sizeof(float)];
+
+    execUnixCMD("lscpu | awk '/socket/{print $4}'", socket);
+    execUnixCMD("nproc", core);
+    /* Open the command for reading. */
+    
+
+    float numberOfSocket = stof(socket);
+    float numberOfCore = stof(core);
+     return numberOfSocket * numberOfCore;
+}
+
+float Hardware::getProcessorFrequency(){
+
+    char frequency[10];
+
+    execUnixCMD("lscpu | awk -F '@' '/@ /{print $2}' | cut -c2-5", frequency);
+    
+    float cpuFrequency = stof(frequency);
+     return cpuFrequency;
+}
+float Hardware::getprocessorOccupation(){
+
+    char occupation[10];
+    execUnixCMD("iostat | grep -P '^\\s*\\d' | awk '{print $6} '", occupation);
+    string occupationRate_str = occupation;
+    replace(occupationRate_str.begin(), occupationRate_str.end(), ',', '.');
+    float cpuOccupation =100 - stof(occupationRate_str);
+    return cpuOccupation;
+}
+
+float Hardware::getramSize(){
+    char ram[10];
+    execUnixCMD("free -m | grep Mem | awk '{print $2}'", ram);
+    float ramSize = stof(ram);
+    return ramSize;
+}
+
+float Hardware::getRamOccupation(){
+    char usedRam[10];
+    execUnixCMD("free -m | grep Mem | awk '{print $4}'", usedRam);
+    float ramOccupation = stof(usedRam) *100 / ramSize;
+    return ramOccupation;
+}

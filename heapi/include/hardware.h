@@ -19,11 +19,11 @@ class Hardware
         float ramSize;
         float ramOccupation;
 
-        float getProcessorCoreNumber(){ return processorCoreNumber; }
-        float getProcessorFrequency(){ return processorFrequency;}
-        float getprocessorOccupation(){ return processorOccupation;}
-        float getramSize(){ return ramSize;}
-        float getramOccupation(){ return ramOccupation;}
+        float getProcessorCoreNumber();
+        float getProcessorFrequency();
+        float getprocessorOccupation();
+        float getramSize();
+        float getRamOccupation();
 
         std::string toString();
 
