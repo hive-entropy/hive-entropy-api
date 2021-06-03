@@ -2,7 +2,7 @@
 #define DISTRIBUTOR_H 
 
 #include "HiveEntropyNode.h"
-#include "hardware.h"
+#include "Hardware.h"
 #include <mutex>
 #include <condition_variable>
 #include <set>

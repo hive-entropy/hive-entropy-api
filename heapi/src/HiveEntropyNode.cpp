@@ -83,6 +83,3 @@ void HiveEntropyNode::sendAskingHardwareSpecification(string uri){
     m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
     send(m);
 }
-
-
-// TODO: Add async handler registration
