@@ -2,6 +2,8 @@
 #define HIVE_ENTROPY_NODE_H
 
 #include <functional>
+#include <mutex>
+
 #include "Matrix.h"
 #include "Message.h"
 #include "CoapEndpoint.h"
@@ -39,12 +41,11 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         void registerAsynchronousHandler(string uri, HttpMethod method);
 
         void keepAlive();
-
     private:
-        std::map<std::pair<std::string,HttpMethod>,Message (*)(Message)> asyncHandlers;
         CoapEndpoint coap;
 };
 
+static std::map<coap_mid_t,std::mutex> locks = std::map<coap_mid_t,std::mutex>();
 
 //-----------------------
 //Templated methods
@@ -101,6 +102,7 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
     coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
         if(request){
             coap_async_t *async;
+
             coap_bin_const_t token = coap_pdu_get_token(request);
             async = coap_find_async(session, token);
 
@@ -111,16 +113,16 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
                     return;
                 }
                 Message inputMessage(session, request);
-                std::thread t([](coap_session_t* sess, coap_bin_const_t* tok, Message input){
+                std::thread t([](coap_session_t* sess, coap_bin_const_t* tok, Message input, coap_mid_t mid){
                     Message* output  = new Message();
                     *output = F(input);
-
+                
                     coap_async_t* async = coap_find_async(sess, *tok);
                     if(async){
                         coap_async_set_app_data(async,output);
                         coap_async_set_delay(async,1);
                     }
-                }, session, &token, inputMessage);
+                }, session, &token, inputMessage,coap_pdu_get_mid(request));
                 t.detach();
                 return;
             }

@@ -2,7 +2,9 @@
 
 Peer::Peer(){}
 
-Peer::Peer(Hardware h, std::string address, float latency) : hardware(h), address(address), latency(latency) {}
+Peer::Peer(Hardware h, std::string address, float latency) : hardware(h), address(address), latency(latency) {
+    timestamp = std::time(nullptr);
+}
 
 void Peer::setAddress(std::string address){
     this->address = address;
@@ -26,4 +28,14 @@ std::string Peer::getAddress(){
 
 float Peer::getLatency(){
     return latency;
+}
+
+std::time_t Peer::getTimestamp(){
+    return timestamp;
+}
+
+bool Peer::operator==(const Peer& other){
+    if(address==other.address)
+        return true;
+    return false;
 }

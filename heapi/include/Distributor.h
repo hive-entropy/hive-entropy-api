@@ -3,6 +3,8 @@
 
 #include "HiveEntropyNode.h"
 #include "Hardware.h"
+#include "Peer.h"
+
 #include <mutex>
 #include <condition_variable>
 #include <set>
@@ -50,8 +52,10 @@ class Distributor{
         static std::map<std::string,std::set<std::pair<int,int>>> pendingBlocks; //Cleanup
 
         static std::map<Parameter,std::string> settings;
-        static std::vector<std::string> peerAddresses;
+        static std::vector<Peer> peers;
         static std::map<std::string, Matrix<T>> storedPartialResults; //Cleanup
+
+        static std::time_t lastHardwareCheck;
 
         static coap_response_t handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id);
         static void handleResultResponse(Message m);
@@ -77,7 +81,7 @@ template<typename T>
 std::map<Parameter,std::string> Distributor<T>::settings = std::map<Parameter,std::string>();
 
 template<typename T>
-std::vector<std::string> Distributor<T>::peerAddresses = std::vector<std::string>();
+std::vector<Peer> Distributor<T>::peers = std::vector<Peer>();
 
 template<typename T>
 std::map<std::string, Matrix<T>> Distributor<T>::storedPartialResults = std::map<std::string, Matrix<T>>();
@@ -89,13 +93,20 @@ template<typename T>
 std::condition_variable Distributor<T>::addressCv;
 
 template<typename T>
+std::time_t Distributor<T>::lastHardwareCheck;
+
+template<typename T>
 Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     node->registerResponseHandler(handleResponse);
     configure(Parameter::ASSISTANCE_TIMEOUT,5);
     configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,12);
-    //peerAddresses.push_back("192.168.1.57");
-    peerAddresses.push_back("192.168.1.42:9999");
-    //peerAddresses.push_back("192.168.1.96:9999");
+
+    Peer p;
+    Hardware h;
+    p.setAddress("192.168.1.42:9999");
+    p.setLatency(0.0);
+    p.setHardware(h);
+    peers.push_back(p);
 }
 
 template<typename T>
@@ -117,7 +128,9 @@ std::string Distributor<T>::distributeMatrixMultiplication(Matrix<T> a, Matrix<T
     splitter.detach();
     cout << "[distribute] Initiated splitter thread" << endl;
 
-    node->queryNodeAvailability();
+    node->resolveNodeIdentities();
+    lastHardwareCheck = std::time(nullptr);
+
     cout << "[distribute] Queried node availability" << endl;
 
     return uid;
@@ -128,10 +141,10 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
     
     cout << "[splitter] Waiting on lock for answers" << endl;
     std::unique_lock<std::mutex> lock(addressLock);
-    bool timedOut = addressCv.wait_for(lock,std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT])*1000ms,[]{return peerAddresses.size()>=std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);});
+    bool timedOut = addressCv.wait_for(lock,std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT])*1000ms,[]{return peers.size()>=std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);});
 
     if(m==MultiplicationMethod::ROW_COLUMN){
-        int nodeCount = peerAddresses.size();
+        int nodeCount = peers.size();
         int remainder = a.getRows()*b.getColumns() % nodeCount;
         int packetsPerNode = (a.getRows()*b.getColumns() - remainder) / nodeCount;
 
@@ -147,8 +160,8 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                 }
                 else{
                     pendingBlocks[uid].insert(std::pair<int,int>(i,j));
-                    node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],first,second,uid);
-                    //cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peerAddresses[counter%nodeCount] << endl;
+                    node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),first,second,uid);
+                    //cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peers[counter%nodeCount] << endl;
                 }
                 counter++;
             }
@@ -156,7 +169,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
     }
     else if(m==MultiplicationMethod::CANNON){
         //----> Count assisters
-        int nodeCount = peerAddresses.size();
+        int nodeCount = peers.size();
 
         //----> Find closest perfect square that divides all dimensions
         int gridSize = 1;
@@ -176,7 +189,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                 taskId++;
                 
                 for(int k=0; k<gridSize;k++){
-                    node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],a.getSubmatrix(i*a.getRows()/gridSize,k*a.getColumns()/gridSize,(i+1)*a.getRows()/gridSize-1,(k+1)*a.getColumns()/gridSize-1),b.getSubmatrix(k*b.getRows()/gridSize,j*b.getColumns()/gridSize,(k+1)*b.getRows()/gridSize-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,gridSize,to_string(taskId),uid);
+                    node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,k*a.getColumns()/gridSize,(i+1)*a.getRows()/gridSize-1,(k+1)*a.getColumns()/gridSize-1),b.getSubmatrix(k*b.getRows()/gridSize,j*b.getColumns()/gridSize,(k+1)*b.getRows()/gridSize-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,gridSize,to_string(taskId),uid);
                 }
 
                 counter++;
@@ -186,7 +199,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
     }
     else if(m==MultiplicationMethod::MULTIPLE_ROW_COLUMN){
         //----> Count assisters
-        int nodeCount = peerAddresses.size();
+        int nodeCount = peers.size();
 
         //----> Find closest perfect square that divides all dimensions
         int gridSize = 1;
@@ -202,7 +215,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
         int counter = 0;
         for(int i=0; i<gridSize; i++){
             for(int j=0;j<gridSize;j++){ 
-                node->sendMatrixMultiplicationTask(peerAddresses[counter%nodeCount],a.getSubmatrix(i*a.getRows()/gridSize,0,(i+1)*a.getRows()/gridSize-1,a.getColumns()-1),b.getSubmatrix(0,j*b.getColumns()/gridSize,b.getRows()-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,uid);
+                node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,0,(i+1)*a.getRows()/gridSize-1,a.getColumns()-1),b.getSubmatrix(0,j*b.getColumns()/gridSize,b.getRows()-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,uid);
                 pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
                 counter++;
             }
@@ -343,8 +356,10 @@ void Distributor<T>::handleAssistanceResponse(Message m){
 
     cout << "[handle-assistance] Waiting on lock" << endl;
     std::unique_lock<std::mutex> lock(addressLock);
-    if(!std::count(peerAddresses.begin(), peerAddresses.end(), address)){
-        peerAddresses.push_back(address);
+    Peer p;
+    p.setAddress(address);
+    if(!std::count(peers.begin(), peers.end(), p)){
+        peers.push_back(p);
     }
 
     cout << "[handle-assistance] Unlocking" << endl;
@@ -356,11 +371,13 @@ void Distributor<T>::handleAssistanceResponse(Message m){
 template<typename T>
 void Distributor<T>::handleHardwareResponse(Message m){
     std::string address = m.getPeer();
-    Hardware hw;
-    std::string specifications = m.getContent(); 
-    cout << "[handle-hardware] received specifications" << endl;
-    cout << specifications << std::endl;
-    
+    Hardware hw(m.getContent());
+    cout << "[handle-hardware] received specifications:" << endl;
+    cout << hw.toString() << std::endl;
+    std::time_t delay = std::time(nullptr) - lastHardwareCheck;
+
+    Peer peer(hw,address,delay);
+    peers.push_back(peer);
 }
 
 template<typename T>

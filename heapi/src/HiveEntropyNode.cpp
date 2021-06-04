@@ -42,6 +42,7 @@ void HiveEntropyNode::resolveNodeIdentities(){
     m.setDest("coap://239.0.0.1:9999/hardware");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
+    m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
 
     send(m);
 }

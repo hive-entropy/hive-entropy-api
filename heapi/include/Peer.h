@@ -2,12 +2,14 @@
 #define PEER_H
 
 #include "Hardware.h"
+#include <ctime>
 
 class Peer{
     private:
         Hardware hardware;
         std::string address;
         float latency;
+        std::time_t timestamp;
 
     public:
         Peer();
@@ -21,6 +23,9 @@ class Peer{
         Hardware getHardware();
         std::string getAddress();
         float getLatency();
+        std::time_t getTimestamp();
+
+        bool operator==(const Peer& other);
 };
 
 #endif
