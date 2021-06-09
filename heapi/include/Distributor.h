@@ -4,6 +4,7 @@
 #include "HiveEntropyNode.h"
 #include "Hardware.h"
 #include "Peer.h"
+#include "Block.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -23,7 +24,8 @@ enum Parameter{
     UID_SEED,
     MAX_THREADS,
     FRESHNESS,
-    RESULT_TIMEOUT
+    RESULT_TIMEOUT,
+    HEALTH_TIMEOUT
 };
 
 template<typename T>
@@ -49,13 +51,14 @@ class Distributor{
         static std::map<std::string,std::condition_variable> cvs; //Cleanup
         static std::condition_variable addressCv;
 
-        static std::map<std::string,std::set<std::pair<int,int>>> pendingBlocks; //Cleanup
+        static std::map<std::string,std::vector<Block>> pendingBlocks; //Cleanup
 
         static std::map<Parameter,std::string> settings;
         static std::vector<Peer> peers;
         static std::map<std::string, Matrix<T>> storedPartialResults; //Cleanup
 
         static std::time_t lastHardwareCheck;
+        static std::vector<Peer> healthyNodes;
 
         static coap_response_t handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id);
         static void handleResultResponse(Message m);
@@ -64,6 +67,8 @@ class Distributor{
         static void handleHealthResponse(Message m);
 
         void splitMatrixMultiplicationTask(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m);
+
+        void observer(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m);
 
         std::string generateUID();
 };
@@ -75,7 +80,7 @@ template<typename T>
 std::map<std::string,std::condition_variable> Distributor<T>::cvs = std::map<std::string,std::condition_variable>();
 
 template<typename T>
-std::map<std::string,std::set<std::pair<int,int>>> Distributor<T>::pendingBlocks = std::map<std::string,std::set<std::pair<int,int>>>();
+std::map<std::string,std::vector<Block>> Distributor<T>::pendingBlocks = std::map<std::string,std::vector<Block>>();
 
 template<typename T>
 std::map<Parameter,std::string> Distributor<T>::settings = std::map<Parameter,std::string>();
@@ -96,17 +101,17 @@ template<typename T>
 std::time_t Distributor<T>::lastHardwareCheck;
 
 template<typename T>
+std::vector<Peer> Distributor<T>::healthyNodes = std::vector<Peer>();
+
+template<typename T>
 Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     node->registerResponseHandler(handleResponse);
     configure(Parameter::ASSISTANCE_TIMEOUT,5);
     configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,12);
-
-    Peer p;
-    Hardware h;
-    p.setAddress("192.168.1.42:9999");
-    p.setLatency(0.0);
-    p.setHardware(h);
-    peers.push_back(p);
+    configure(Parameter::RESULT_TIMEOUT,10);
+    configure(Parameter::HEALTH_TIMEOUT,2);
+    configure(Parameter::MAX_THREADS,4);
+    configure(Parameter::FRESHNESS,10);
 }
 
 template<typename T>
@@ -159,7 +164,8 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                     storedPartialResults.at(uid).put(i,j,first*second);
                 }
                 else{
-                    pendingBlocks[uid].insert(std::pair<int,int>(i,j));
+                    Block block(&peers[counter%nodeCount],i,j,i,j);
+                    pendingBlocks[uid].push_back(block);
                     node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),first,second,uid);
                     //cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peers[counter%nodeCount] << endl;
                 }
@@ -192,8 +198,10 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                     node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,k*a.getColumns()/gridSize,(i+1)*a.getRows()/gridSize-1,(k+1)*a.getColumns()/gridSize-1),b.getSubmatrix(k*b.getRows()/gridSize,j*b.getColumns()/gridSize,(k+1)*b.getRows()/gridSize-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,gridSize,to_string(taskId),uid);
                 }
 
+
+                Block block(&peers[counter%nodeCount],i*a.getRows()/gridSize,(i+1)*a.getRows()/gridSize-1,j*b.getColumns()/gridSize, (j+1)*b.getColumns()/gridSize-1);
+                pendingBlocks[uid].push_back(block);
                 counter++;
-                pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
             }
         }
     }
@@ -216,12 +224,218 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
         for(int i=0; i<gridSize; i++){
             for(int j=0;j<gridSize;j++){ 
                 node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,0,(i+1)*a.getRows()/gridSize-1,a.getColumns()-1),b.getSubmatrix(0,j*b.getColumns()/gridSize,b.getRows()-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,uid);
-                pendingBlocks[uid].insert(std::pair<int,int>(i*a.getRows()/gridSize,j*b.getColumns()/gridSize));
+                Block block(&peers[counter%nodeCount],i*a.getRows()/gridSize, (i+1)*a.getRows()/gridSize-1,  j*b.getColumns()/gridSize, (j+1)*b.getColumns()/gridSize-1);
+                pendingBlocks[uid].push_back(block);
                 counter++;
             }
         }
     }
+
+    std::thread obs(&Distributor<T>::observer,this,uid,a,b,m);
+    obs.detach();
 }
+
+
+template<typename T>
+void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m){
+    while(true){
+        std::unique_lock<std::mutex> lock(locks[uid]);
+
+        if(pendingBlocks[uid].empty())
+            break;
+
+        for(Block block : pendingBlocks[uid]){
+            if(block.getTimestamp()+Parameter::RESULT_TIMEOUT>std::time(nullptr)){
+                Peer* responsible = block.getResponsible();
+                if(responsible!=nullptr){
+                    std::unique_lock addrLock(addressLock);
+                    bool alive = cvs[uid].wait_for(lock,std::chrono::seconds(std::stoi(settings[Parameter::HEALTH_TIMEOUT])),[this,responsible]{
+                        return std::find(healthyNodes.begin(),healthyNodes.end(),*responsible)!=healthyNodes.end();
+                    });
+                    if(alive){
+                        std::find(peers.begin(),peers.end(),*responsible)->refresh();
+                        healthyNodes.erase(std::find(healthyNodes.begin(),healthyNodes.end(),*responsible));
+                        switch(m){
+                            case CANNON: {
+                                for(int k=0; k<a.getRows()/(block.getEndRow()-block.getStartRow());k++){
+                                    node->sendMatrixMultiplicationTask(
+                                        responsible->getAddress(),
+                                        a.getSubmatrix(
+                                            block.getStartRow(),
+                                            k*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getEndRow(),
+                                            (k+1)*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow())-1
+                                        ),
+                                        b.getSubmatrix(
+                                            k*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getStartCol(),
+                                            (k+1)*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow())-1,
+                                            block.getEndCol()
+                                        ),
+                                        block.getStartRow(),
+                                        block.getStartCol(),
+                                        a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                        block.getTaskId(),
+                                        uid
+                                    );
+                                }
+                            break;
+                            }
+                            case ROW_COLUMN:{
+                                Row<T> r(a.getColumns(),block.getStartRow(),a.getRow(block.getStartRow()));
+                                Column<T> c(b.getRows(),block.getStartCol(),b.getColumn(block.getEndCol()));
+                                node->sendMatrixMultiplicationTask(responsible->getAddress(),r,c,uid);
+                            break;
+                            }
+                            case MULTIPLE_ROW_COLUMN:{
+                                node->sendMatrixMultiplicationTask(
+                                    responsible->getAddress(),
+                                    a.getSubmatrix(
+                                        block.getStartRow(),
+                                        0,
+                                        block.getEndRow(),
+                                        a.getColumns()
+                                    ),
+                                    b.getSubmatrix(
+                                        0,
+                                        block.getStartCol(),
+                                        b.getRows(),
+                                        block.getEndCol()
+                                    ),
+                                    block.getStartRow(),
+                                    block.getStartCol(),
+                                    uid
+                                );
+                            break;
+                            }
+                        }
+                        block.refresh();
+                    }
+                    else{
+                        switch(m){
+                            case CANNON:{
+                                Peer p = peers.at((int) random()%peers.size());
+                                for(int k=0; k<a.getRows()/(block.getEndRow()-block.getStartRow());k++){
+                                    node->sendMatrixMultiplicationTask(
+                                        p.getAddress(),
+                                        a.getSubmatrix(
+                                            block.getStartRow(),
+                                            k*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getEndRow(),
+                                            (k+1)*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow())-1
+                                        ),
+                                        b.getSubmatrix(
+                                            k*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getStartCol(),
+                                            (k+1)*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow())-1,
+                                            block.getEndCol()
+                                        ),
+                                        block.getStartRow(),
+                                        block.getStartCol(),
+                                        a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                        block.getTaskId(),
+                                        uid
+                                    );
+                                }
+                            break;
+                            }
+                            case ROW_COLUMN:{
+                                Row<T> r(a.getColumns(),block.getStartRow(),a.getRow(block.getStartRow()));
+                                Column<T> c(b.getRows(),block.getStartCol(),b.getColumn(block.getEndCol()));
+                                node->sendMatrixMultiplicationTask(peers[(int) random()%peers.size()].getAddress(),r,c,uid);
+                            break;
+                            }
+                            case MULTIPLE_ROW_COLUMN:
+                            {
+                                node->sendMatrixMultiplicationTask(
+                                    peers[(int) random()%peers.size()].getAddress(),
+                                    a.getSubmatrix(
+                                        block.getStartRow(),
+                                        0,
+                                        block.getEndRow(),
+                                        a.getColumns()
+                                    ),
+                                    b.getSubmatrix(
+                                        0,
+                                        block.getStartCol(),
+                                        b.getRows(),
+                                        block.getEndCol()
+                                    ),
+                                    block.getStartRow(),
+                                    block.getStartCol(),
+                                    uid
+                                );
+                            break;
+                            }
+                        }
+                        block.refresh();
+                    }
+                }
+                else{
+                    switch(m){
+                            case CANNON:{
+                                Peer p = peers.at((int) random()%peers.size());
+                                for(int k=0; k<a.getRows()/(block.getEndRow()-block.getStartRow());k++){
+                                    node->sendMatrixMultiplicationTask(
+                                        p.getAddress(),
+                                        a.getSubmatrix(
+                                            block.getStartRow(),
+                                            k*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getEndRow(),
+                                            (k+1)*a.getColumns()/a.getRows()/(block.getEndRow()-block.getStartRow())-1
+                                        ),
+                                        b.getSubmatrix(
+                                            k*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                            block.getStartCol(),
+                                            (k+1)*b.getRows()/a.getRows()/(block.getEndRow()-block.getStartRow())-1,
+                                            block.getEndCol()
+                                        ),
+                                        block.getStartRow(),
+                                        block.getStartCol(),
+                                        a.getRows()/(block.getEndRow()-block.getStartRow()),
+                                        block.getTaskId(),
+                                        uid
+                                    );
+                                }
+                            break;
+                            }
+                            case ROW_COLUMN:{
+                                Row<T> r(a.getColumns(),block.getStartRow(),a.getRow(block.getStartRow()));
+                                Column<T> c(b.getRows(),block.getStartCol(),b.getColumn(block.getEndCol()));
+                                node->sendMatrixMultiplicationTask(peers[(int) random()%peers.size()].getAddress(),r,c,uid);
+                            break;
+                            }
+                            case MULTIPLE_ROW_COLUMN:{
+                                node->sendMatrixMultiplicationTask(
+                                    peers[(int) random()%peers.size()].getAddress(),
+                                    a.getSubmatrix(
+                                        block.getStartRow(),
+                                        0,
+                                        block.getEndRow(),
+                                        a.getColumns()
+                                    ),
+                                    b.getSubmatrix(
+                                        0,
+                                        block.getStartCol(),
+                                        b.getRows(),
+                                        block.getEndCol()
+                                    ),
+                                    block.getStartRow(),
+                                    block.getStartCol(),
+                                    uid
+                                );
+                            break;
+                            }
+                        }
+                        block.refresh();
+                }
+            }
+        }
+        lock.unlock();
+        std::this_thread::sleep_for(std::chrono::seconds(std::stoi(settings[Parameter::RESULT_TIMEOUT])));
+    }
+}
+
 
 template<typename T>
 std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b){
@@ -309,10 +523,12 @@ void Distributor<T>::handleResultResponse(Message m){
         cout << "[handle-result] Inserting..." << endl;
         if(storedPartialResults.find(uid)!=storedPartialResults.end()){
             storedPartialResults.at(uid).putSubmatrix(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]), result);
-            std::set<std::pair<int, int> >::iterator it = pendingBlocks[uid].find(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+
+            Block block(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]));
+            std::vector<Block>::iterator it = std::find(pendingBlocks[uid].begin(),pendingBlocks[uid].end(),block);
             if(it!=pendingBlocks[uid].end()){
                 cout << "[handle-result] Removing result from pending" << endl;
-                pendingBlocks.at(uid).erase(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+                pendingBlocks.at(uid).erase(it);
             }
         }
     }
@@ -335,10 +551,12 @@ void Distributor<T>::handleResultResponse(Message m){
         cout << "[handle-result] Extracted element="+to_string(element)+". Inserting.." << endl;
         if(storedPartialResults.find(uid)!=storedPartialResults.end()){
             storedPartialResults.at(uid).put(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]),element);
-            std::set<std::pair<int, int> >::iterator it = pendingBlocks[uid].find(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+            Block block(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]));
+
+            std::vector<Block>::iterator it = std::find(pendingBlocks[uid].begin(),pendingBlocks[uid].end(),block);
             if(it!=pendingBlocks[uid].end()){
                 cout << "[handle-result] Removing result from pending" << endl;
-                pendingBlocks.at(uid).erase(std::pair<int,int>(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y])));
+                pendingBlocks.at(uid).erase(it);
                 cout << "[handle-result] "+std::to_string(pendingBlocks.at(uid).size())+" remaining to receive..." <<endl;
             }
         }
@@ -382,7 +600,14 @@ void Distributor<T>::handleHardwareResponse(Message m){
 
 template<typename T>
 void Distributor<T>::handleHealthResponse(Message m){
-    //LATER
+    std::unique_lock<std::mutex> lock(addressLock);
+    Peer p;
+    p.setAddress(m.getPeer());
+
+    if(std::find(peers.begin(),peers.end(),p)!=peers.end())
+        healthyNodes.push_back(*std::find(peers.begin(),peers.end(),p));
+    lock.unlock();
+    addressCv.notify_all();
 }
 
 template<typename T>

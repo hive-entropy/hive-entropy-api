@@ -34,6 +34,10 @@ std::time_t Peer::getTimestamp(){
     return timestamp;
 }
 
+void Peer::refresh(){
+    timestamp = std::time(nullptr);
+}
+
 bool Peer::operator==(const Peer& other){
     if(address==other.address)
         return true;

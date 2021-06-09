@@ -10,3 +10,4 @@
 #include "Distributor.h"
 #include "Hardware.h"
 #include "Peer.h"
+#include "Block.h"

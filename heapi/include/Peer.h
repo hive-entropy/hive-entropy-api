@@ -25,6 +25,8 @@ class Peer{
         float getLatency();
         std::time_t getTimestamp();
 
+        void refresh();
+
         bool operator==(const Peer& other);
 };
 

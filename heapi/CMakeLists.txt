@@ -42,6 +42,7 @@ add_library(HiveEntropyAPI
         src/ResponseBuilder.cpp
         src/Hardware.cpp
         src/Peer.cpp
+        src/Block.cpp
         )
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
