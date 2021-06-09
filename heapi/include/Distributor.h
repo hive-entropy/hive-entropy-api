@@ -248,7 +248,7 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
             if(block.getTimestamp()+Parameter::RESULT_TIMEOUT>std::time(nullptr)){
                 Peer* responsible = block.getResponsible();
                 if(responsible!=nullptr){
-                    std::unique_lock addrLock(addressLock);
+                    std::unique_lock<std::mutex> addrLock(addressLock);
                     bool alive = cvs[uid].wait_for(lock,std::chrono::seconds(std::stoi(settings[Parameter::HEALTH_TIMEOUT])),[this,responsible]{
                         return std::find(healthyNodes.begin(),healthyNodes.end(),*responsible)!=healthyNodes.end();
                     });
