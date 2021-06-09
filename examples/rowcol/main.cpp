@@ -22,7 +22,7 @@ int main(void){
     localC.show();
 
 
-    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.42:6969");
+    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
     Distributor<float> dist(n);
 
     cout << "[main] Requesting distributed multiplication" << endl;

@@ -42,7 +42,7 @@ Hardware::Hardware(std::string infos){
     {
         pos = infos.find(delimiter);
         token = infos.substr(0, pos); 
-        infosList[i] = stof(token);
+        infosList[i] = std::stof(token);
         infos.erase(0, pos + delimiter.length());
     }
     processorCoreNumber = infosList[0];
@@ -69,6 +69,7 @@ float Hardware::findProcessorCoreNumber(){
     execUnixCMD("nproc", core);
     /* Open the command for reading. */
     
+    cout << "socket="<<socket << " core=" << core << endl;
 
     float numberOfSocket = stof(socket);
     float numberOfCore = stof(core);
@@ -81,6 +82,8 @@ float Hardware::findProcessorFrequency(){
 
     execUnixCMD("lscpu | awk -F '@' '/@ /{print $2}' | cut -c2-5", frequency);
     
+
+    cout << "frequency=" << frequency << endl;
     float cpuFrequency = stof(frequency);
      return cpuFrequency;
 }
@@ -91,6 +94,7 @@ float Hardware::findProcessorOccupation(){
     execUnixCMD("iostat | grep -P '^\\s*\\d' | awk '{print $6} '", occupation);
     string occupationRate_str = occupation;
     replace(occupationRate_str.begin(), occupationRate_str.end(), ',', '.');
+    cout << "occupationRate=" << occupationRate_str << endl; 
     float cpuOccupation =100 - stof(occupationRate_str);
     return cpuOccupation;
 }
@@ -98,6 +102,7 @@ float Hardware::findProcessorOccupation(){
 float Hardware::findRamSize(){
     char ram[10];
     execUnixCMD("free -m | grep Mem | awk '{print $2}'", ram);
+    cout << "ram=" << ram;
     float ramSize = stof(ram);
     return ramSize;
 }
@@ -105,6 +110,7 @@ float Hardware::findRamSize(){
 float Hardware::findRamOccupation(){
     char usedRam[10];
     execUnixCMD("free -m | grep Mem | awk '{print $4}'", usedRam);
+    cout << "usedRam=" << usedRam;
     float ramOccupation = stof(usedRam) *100 / ramSize;
     return ramOccupation;
 }
