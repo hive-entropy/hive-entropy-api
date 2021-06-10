@@ -17,9 +17,8 @@ void execUnixCMD(const char* cmd, char * result){
     }
 
     /* Read the output a line at a time - output it. */
-    while (fgets(str, sizeof(float), fp) != NULL) {
+    while (fgets(result, sizeof(float)*sizeof(float), fp) != NULL) {
         cout << " fgets [" << str << "]" << endl;
-        strcat(result, str);
     }
     std::cout << "for : " << cmd << " result : " << result << endl;
     /* close */
