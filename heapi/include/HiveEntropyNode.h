@@ -132,9 +132,10 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
                     }
                 }, session, &token, inputMessage,coap_pdu_get_mid(request));
                 t.detach();
+                coap_mid_t mid = coap_pdu_get_mid(request);
                 std::unique_lock<std::mutex> lock(locks[coap_pdu_get_mid(request)]);
-                cvs[coap_pdu_get_mid(request)].wait(lock,[]{
-                    return canDie[coap_pdu_get_mid(request)];
+                cvs[mid].wait(lock,[mid]{
+                    return canDie[mid];
                 });
                 return;
             }
