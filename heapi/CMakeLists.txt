@@ -77,7 +77,7 @@ target_compile_features(HiveEntropyAPI
         )
 
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g
+        PRIVATE -Wall -g -pthread
 )
 
 # Link the OpenBlas library to the target
