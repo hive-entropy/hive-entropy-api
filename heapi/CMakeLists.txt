@@ -21,6 +21,8 @@
 # https://dev.to/younup/cmake-on-stm32-episode-5-get-ready-for-c-1mh9
 # https://github.com/modm-io/modm
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -lpthread")
+
 ##############################################
 # External project dependencies
 
@@ -79,8 +81,6 @@ target_compile_features(HiveEntropyAPI
 target_compile_options(HiveEntropyAPI
         PRIVATE -Wall -g
 )
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
