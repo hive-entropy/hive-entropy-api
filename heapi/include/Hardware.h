@@ -30,6 +30,8 @@ class Hardware
         float getRamSize();
         float getRamOccupation();
 
+        int getRate();
+
         std::string toString();
 };
 #endif

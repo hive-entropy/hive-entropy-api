@@ -3,13 +3,10 @@
 #include <sstream>
 #include <iostream>
 #include <string>  
+#include <string.h>
 #include <algorithm>
 using namespace std;
 
-#define UNIX
-#ifdef UNIX
-int getProcNumber = get_nprocs();
-#endif
 
 void execUnixCMD(const char* cmd, char * result){
     FILE *fp;
@@ -77,10 +74,18 @@ float Hardware::findProcessorCoreNumber(){
 
 float Hardware::findProcessorFrequency(){
 
-    char frequency[10];
-
-    execUnixCMD("lscpu | awk -F '@' '/@ /{print $2}' | cut -c2-5", frequency);
+    char numberOfLine[2], frequency[10];
+    execUnixCMD("lscpu | awk '$0 ~ /MHz/ {count ++} END {print count}'", numberOfLine);
+    if (strcmp(numberOfLine, "3") == 0)
+    {
+        execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '2p'", frequency);
+    }
+    else if (strcmp(numberOfLine, "2") == 0)
+    {
+        execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '1p'", frequency);
+    }
     
+  
     float cpuFrequency = stof(frequency);
      return cpuFrequency;
 }
@@ -91,7 +96,7 @@ float Hardware::findProcessorOccupation(){
     execUnixCMD("iostat | grep -P '^\\s*\\d' | awk '{print $6} '", occupation);
     string occupationRate_str = occupation;
     replace(occupationRate_str.begin(), occupationRate_str.end(), ',', '.');
-    float cpuOccupation =100 - stof(occupationRate_str);
+    float cpuOccupation = 100 - stof(occupationRate_str);
     return cpuOccupation;
 }
 
@@ -127,5 +132,9 @@ float Hardware::getRamSize(){
 
 float Hardware::getRamOccupation(){
     return ramOccupation;
+}
+
+int Hardware::getRate(){
+    return (ramSize * ramOccupation/100 +  processorCoreNumber * processorOccupation/100) * 10 / 16;
 }
 
