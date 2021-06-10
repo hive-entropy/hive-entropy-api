@@ -98,7 +98,7 @@ float Hardware::findProcessorFrequency(){
 float Hardware::findProcessorOccupation(){
 
     char occupation[10];
-    execUnixCMD("iostat | grep -P '^\\s*\\d' | awk '{print $6} '", occupation);
+    execUnixCMD("iostat | sed -n '4p' | awk '{print $6}'", occupation);
     string occupationRate_str = occupation;
     replace(occupationRate_str.begin(), occupationRate_str.end(), ',', '.');
     float cpuOccupation = 100 - stof(occupationRate_str);
