@@ -1,5 +1,5 @@
 # Hive-Entropy API : Bibliothèque de distribution de calculs sur un réseau Hive-Entropy
-e
+
 Ce projet est réalisé dans le cadre d'un projet universitaire à [CY Tech](https://cytech.cyu.fr/), dans le cadre de notre [Master 2 IISC](https://depinfo.u-cergy.fr/master). L'objectif de ce projet est de couvrir un large éventail de connaissances et technologies, pour nous permettre de mettre en pratique nos apprentissages acquis au cours de notre formation.
 
 Dans cet esprit, notre sujet concerne la distribution de puissance de calcul au sein d'un réseau d'appareils connectés. Ce programme correspond plus précisément à une bibliothèque transversale à notre projet, nous permettant de fournir les outils nécessaires la bonne exploitation d'un réseau de distribution de calcul.
