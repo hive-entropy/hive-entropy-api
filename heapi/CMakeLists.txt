@@ -59,9 +59,16 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
-if(NOT OpenBLAS_FOUND)
-        find_package(BLAS REQUIRED)
-        add_library(OpenBLAS::OpenBLAS ALIAS BLAS)
+
+if(NOT TARGET OpenBLAS::OpenBLAS)
+        message(STATUS "No OpenBLASTargets.cmake found. Creating imported target.")
+        add_library(OpenBLAS::OpenBLAS INTERFACE IMPORTED)
+        if(OpenBLAS_LIBRARIES)
+                set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
+                        INTERFACE_LINK_LIBRARIES "${OpenBLAS_LIBRARIES}"
+                        INTERFACE_INCLUDE_DIRECTORIES "${OpenBLAS_INCLUDE_DIRS}"
+                        )
+        endif()
 endif()
 
 # Set the compiler to use C++11
