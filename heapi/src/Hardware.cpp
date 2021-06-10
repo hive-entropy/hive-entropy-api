@@ -85,7 +85,7 @@ float Hardware::findProcessorFrequency(){
     }
     else if (strcmp(numberOfLine, "2") == 0)
     {
-        execUnixCMD("lscpu | grep MHz | sed -n '1p' | awk '{print $NF}'", frequency);
+        execUnixCMD("lscpu | grep MHz | sed -n '1p' | cut -d':' -f2 | tr -d ' '", frequency);
     }
     else if (strcmp(numberOfLine, "1") == 0)
     {
