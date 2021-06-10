@@ -66,8 +66,8 @@ float Hardware::findProcessorCoreNumber(){
     
     char socket[sizeof(float)], core[sizeof(float)];
 
-    execUnixCMD("lscpu | awk '/socket/{print $4}'", socket);
-    execUnixCMD("nproc", core);
+    execUnixCMD("lscpu | awk '/socket/{print $4}' | tr -d '\n'", socket);
+    execUnixCMD("nproc | tr -d '\n'", core);
     /* Open the command for reading. */
     
 
