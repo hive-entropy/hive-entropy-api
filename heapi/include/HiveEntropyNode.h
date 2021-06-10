@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <mutex>
+#include <condition_variable>
 
 #include "Matrix.h"
 #include "Message.h"
@@ -46,6 +47,8 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
 };
 
 static std::map<coap_mid_t,std::mutex> locks = std::map<coap_mid_t,std::mutex>();
+static std::map<coap_mid_t,std::condition_variable> cvs = std::map<coap_mid_t,std::condition_variable>();
+static std::map<coap_mid_t,bool> canDie = std::map<coap_mid_t,bool>();
 
 //-----------------------
 //Templated methods
@@ -113,17 +116,26 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
                     return;
                 }
                 Message inputMessage(session, request);
+
+                canDie[coap_pdu_get_mid(request)] = false; 
                 std::thread t([](coap_session_t* sess, coap_bin_const_t* tok, Message input, coap_mid_t mid){
+                    std::unique_lock<std::mutex> lock(locks[mid]);
+                    coap_async_t* async = coap_find_async(sess, *tok);
+                    canDie[mid] = true;
+                    cvs[mid].notify_all();
+
                     Message* output  = new Message();
                     *output = F(input);
-                
-                    coap_async_t* async = coap_find_async(sess, *tok);
                     if(async){
                         coap_async_set_app_data(async,output);
                         coap_async_set_delay(async,1);
                     }
                 }, session, &token, inputMessage,coap_pdu_get_mid(request));
                 t.detach();
+                std::unique_lock<std::mutex> lock(locks[coap_pdu_get_mid(request)]);
+                cvs[coap_pdu_get_mid(request)].wait(lock,[]{
+                    return canDie;
+                });
                 return;
             }
         }
