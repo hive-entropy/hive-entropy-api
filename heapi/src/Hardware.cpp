@@ -67,7 +67,6 @@ float Hardware::findProcessorCoreNumber(){
     execUnixCMD("nproc", core);
     /* Open the command for reading. */
     
-    cout << "socket="<<socket << " core=" << core << endl;
 
     float numberOfSocket = stof(socket);
     float numberOfCore = stof(core);
@@ -76,7 +75,7 @@ float Hardware::findProcessorCoreNumber(){
 
 float Hardware::findProcessorFrequency(){
 
-    char numberOfLine[2], frequency[10000] = "test";
+    char numberOfLine[2], frequency[10000];
     execUnixCMD("lscpu | awk '$0 ~ /MHz/ {count ++} END {print count}' | tr -d '\n'", numberOfLine);
     cout << "number of line=" << numberOfLine << endl;
     
