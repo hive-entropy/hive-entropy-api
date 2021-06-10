@@ -10,14 +10,15 @@ using namespace std;
 
 void execUnixCMD(const char* cmd, char * result){
     FILE *fp;
+    char str[sizeof(float)];
     fp = popen(cmd, "r");
     if (fp == NULL) {
     printf("Failed to run command\n" );
     }
 
     /* Read the output a line at a time - output it. */
-    while (fgets(result, sizeof(float)*sizeof(float), fp) != NULL) {
-        cout << "get : " << result << endl;
+    while (fgets(str, sizeof(float), fp) != NULL) {
+        strcat(result, str);
     }
     std::cout << "for : " << cmd << " result : " << result << endl;
     /* close */
