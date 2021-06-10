@@ -77,8 +77,10 @@ target_compile_features(HiveEntropyAPI
         )
 
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g -pthread
+        PRIVATE -Wall -g
 )
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
