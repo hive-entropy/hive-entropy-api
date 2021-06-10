@@ -59,7 +59,7 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
-if(!OpenBLAS_FOUND) 
+if(NOT OpenBLAS_FOUND) 
         target_include_directories(HiveEntropyAPI
                 PUBLIC /usr/local/include
         )
@@ -71,7 +71,7 @@ target_compile_features(HiveEntropyAPI
         )
 
 
-if(!OpenBLAS_FOUND)
+if(NOT OpenBLAS_FOUND)
         target_compile_options(HiveEntropyAPI
                 PRIVATE -lopenblas
         )
