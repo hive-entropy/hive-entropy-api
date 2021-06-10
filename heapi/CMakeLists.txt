@@ -59,24 +59,15 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
-if(NOT OpenBLAS_FOUND) 
-        target_include_directories(HiveEntropyAPI
-                PUBLIC 
-                        /usr/local/include
-        )
+if(NOT OpenBLAS_FOUND)
+        find_package(BLAS REQUIRED)
+        add_library(OpenBLAS::OpenBLAS ALIAS BLAS)
 endif()
 
 # Set the compiler to use C++11
 target_compile_features(HiveEntropyAPI
         PRIVATE cxx_std_11
         )
-
-
-if(NOT OpenBLAS_FOUND)
-        target_compile_options(HiveEntropyAPI
-                PRIVATE -lopenblas
-        )
-endif()
 
 target_compile_options(HiveEntropyAPI
         PRIVATE -Wall -g
@@ -85,15 +76,9 @@ target_compile_options(HiveEntropyAPI
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
-if(OpenBLAS_FOUND)
-        target_link_libraries(HiveEntropyAPI
-                PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3
-        )
-else()
 target_link_libraries(HiveEntropyAPI
-        PUBLIC libcoap::coap-3
+        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3
 )
-endif()
 
 ##############################################
 # Installation instructions
