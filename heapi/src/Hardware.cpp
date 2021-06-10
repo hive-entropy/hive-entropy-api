@@ -18,7 +18,7 @@ void execUnixCMD(const char* cmd, char * result){
     /* Read the output a line at a time - output it. */
     while (fgets(result, sizeof(result), fp) != NULL) {
     }
-    std::cout << "result : " << result << endl;
+    std::cout << "for : " << cmd << " result : " << result << endl;
     /* close */
     pclose(fp);
 }
@@ -78,6 +78,7 @@ float Hardware::findProcessorFrequency(){
 
     char numberOfLine[2], frequency[10000] = "test";
     execUnixCMD("lscpu | awk '$0 ~ /MHz/ {count ++} END {print count}' | tr -d '\n'", numberOfLine);
+    cout << "number of line=" << numberOfLine << endl;
     
     if (strcmp(numberOfLine, "3") == 0)
     {
@@ -93,7 +94,7 @@ float Hardware::findProcessorFrequency(){
     }else{
         cout << "wrong number of line=" << numberOfLine << endl;
     }
-  
+    cout << "frequency" << frequency << endl;
     float cpuFrequency = stof(frequency);
      return cpuFrequency;
 }
