@@ -78,6 +78,7 @@ float Hardware::findProcessorFrequency(){
 
     char numberOfLine[2], frequency[10000] = "test";
     execUnixCMD("lscpu | awk '$0 ~ /MHz/ {count ++} END {print count}' | tr -d '\n'", numberOfLine);
+    
     if (strcmp(numberOfLine, "3") == 0)
     {
         execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '2p'", frequency);
@@ -89,6 +90,8 @@ float Hardware::findProcessorFrequency(){
     else if (strcmp(numberOfLine, "1") == 0)
     {
         execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '1p'", frequency);
+    }else{
+        cout << "wrong number of line=" << numberOfLine << endl;
     }
   
     float cpuFrequency = stof(frequency);
@@ -99,6 +102,7 @@ float Hardware::findProcessorOccupation(){
 
     char occupation[10];
     execUnixCMD("iostat | sed -n '4p' | awk '{print $6}'", occupation);
+    cout << "ProcessorOccupation=" << occupation << endl;
     string occupationRate_str = occupation;
     replace(occupationRate_str.begin(), occupationRate_str.end(), ',', '.');
     float cpuOccupation = 100 - stof(occupationRate_str);

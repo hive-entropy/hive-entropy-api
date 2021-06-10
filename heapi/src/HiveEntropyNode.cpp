@@ -79,7 +79,7 @@ void HiveEntropyNode::sendAskingHardwareSpecification(string uri){
         uri +="/";
 
     m.setDest(uri+"hardware");
-    m.setHttpMethod(HttpMethod::POST);
+    m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::CONFIRMABLE);
     m.addHeader(Headers::PURPOSE,PURPOSE_HARDWARE);
     send(m);
