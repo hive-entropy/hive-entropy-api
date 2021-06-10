@@ -75,7 +75,7 @@ float Hardware::findProcessorCoreNumber(){
 
 float Hardware::findProcessorFrequency(){
 
-    char numberOfLine[2], frequency[10];
+    char numberOfLine[2], frequency[10000];
     execUnixCMD("lscpu | awk '$0 ~ /MHz/ {count ++} END {print count}'", numberOfLine);
     std::cout << "number of line : " << numberOfLine << endl;
     if (strcmp(numberOfLine, "3") == 0)
@@ -83,6 +83,10 @@ float Hardware::findProcessorFrequency(){
         execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '2p'", frequency);
     }
     else if (strcmp(numberOfLine, "2") == 0)
+    {
+        execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '1p'", frequency);
+    }
+    else if (strcmp(numberOfLine, "1") == 0)
     {
         execUnixCMD("lscpu | awk '$0 ~ /MHz/ {print $NF } ' | sed -n '1p'", frequency);
     }
