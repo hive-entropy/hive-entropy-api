@@ -61,7 +61,8 @@ target_include_directories(HiveEntropyAPI
 
 if(NOT OpenBLAS_FOUND) 
         target_include_directories(HiveEntropyAPI
-                PUBLIC /usr/local/include
+                PUBLIC 
+                        /usr/local/include
         )
 endif()
 
