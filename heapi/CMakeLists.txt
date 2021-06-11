@@ -21,8 +21,6 @@
 # https://dev.to/younup/cmake-on-stm32-episode-5-get-ready-for-c-1mh9
 # https://github.com/modm-io/modm
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -lpthread")
-
 ##############################################
 # External project dependencies
 
