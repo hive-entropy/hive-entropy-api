@@ -7,7 +7,7 @@
 #include <random>
 #include <time.h>
 
-#define _COTE 120
+#define _COTE 100
 
 TEST_CASE("Benchmarking"){
 
@@ -23,28 +23,20 @@ TEST_CASE("Benchmarking"){
         }
     }
 
-    BENCHMARK("Local"){
-        return a*b;
-    };
-
-    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.42:6969");
+    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
     BENCHMARK("Distributed RowColumn"){
         Distributor<float> dist(n);
-        dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,2);
-        std::string id = dist.distributeMatrixMultiplication(a,b);
+        dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
+        std::string id = dist.distributeMatrixMultiplication(a,b,MultiplicationMethod::MULTIPLE_ROW_COLUMN);
         return dist.get(id);
     };
 
-    BENCHMARK("Naive Local"){
-        Matrix<float> c(_COTE,_COTE);
-        for(int i=0; i<_COTE; i++){
-            for(int j=0; j<_COTE; j++){
-                for(int k=0; k<_COTE; k++){
-                    c.put(i,j,c.get(i,j)+a.get(i,k)*b.get(k,j));
-                }
-            }
-        }
-        return c;
-    };
+    // BENCHMARK("Distributed Cannon"){
+    //     HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
+    //     Distributor<float> dist(n);
+    //     dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
+    //     std::string id = dist.distributeMatrixMultiplication(a,b,MultiplicationMethod::CANNON);
+    //     return dist.get(id);
+    // };
 
 }
