@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <map>
+#include <mutex>
 
 #include <coap3/coap.h>
 
@@ -22,17 +23,17 @@ class CoapEndpoint{
 
         void send(Message m);
 
-        void endSession(string uri);
-
         void waitForDeath();
-    private:
+
         coap_context_t *context;
+    private:
         coap_address_t localAddress;
         coap_uri_t* localRootUri;
 
         std::map<std::pair<std::string,coap_request_t>,coap_resource_t*> registeredResources;
-        std::map<std::string,coap_session_t*> activeSessions;
         coap_endpoint_t*  listener;
+
+        std::mutex contextLock;
 
         std::thread loop;
         bool keepAlive;

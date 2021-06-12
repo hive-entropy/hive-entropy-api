@@ -93,38 +93,38 @@ void CoapEndpoint::unregisterResourceHandler(std::string path, coap_request_t me
 
 void CoapEndpoint::send(Message m){
 	string destination = m.getDest();
+
+	string sessId = destination;
+	if(sessId.find("coap://")==0)
+		sessId = sessId.substr(7,sessId.size()-1);
+	if(sessId.find("/")!=std::string::npos)
+		sessId = sessId.substr(0,sessId.find("/"));
+
 	coap_session_t* sess;
 
-	if(activeSessions.find(destination)==activeSessions.end()){
-		coap_uri_t* destParts = coap_new_uri(reinterpret_cast<const uint8_t*>(destination.c_str()),destination.length());
+	coap_uri_t* destParts = coap_new_uri(reinterpret_cast<const uint8_t*>(destination.c_str()),destination.length());
 
-		coap_address_t dstAddr;
-		coap_address_init(&dstAddr);
-		dstAddr.addr.sin.sin_family = AF_INET;
+	coap_address_t dstAddr;
+	coap_address_init(&dstAddr);
+	dstAddr.addr.sin.sin_family = AF_INET;
 
-		char* uriBuf = (char*) malloc(destParts->host.length*sizeof(char));
-		strncpy(uriBuf,reinterpret_cast<const char*>(destParts->host.s),destParts->host.length);
+	char* uriBuf = (char*) malloc(destParts->host.length*sizeof(char));
+	strncpy(uriBuf,reinterpret_cast<const char*>(destParts->host.s),destParts->host.length);
 
-		inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
-		dstAddr.addr.sin.sin_port = htons(destParts->port);
+	inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
+	dstAddr.addr.sin.sin_port = htons(destParts->port);
 
+	std::unique_lock<std::mutex> lock(contextLock);
+	sess = coap_session_get_by_peer(context,&dstAddr,0);
+	if(!sess){
 		sess = coap_new_client_session(context,&localAddress,&dstAddr,COAP_PROTO_UDP);
-		activeSessions.insert(pair<string,coap_session_t*>(destination,sess));
-
 		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("01234567"));
-	}
-	else{
-		sess = activeSessions.at(destination);
 	}
 	
 	coap_pdu_t* coapMessage = m.toCoapMessage(sess);
 
 	if(coap_send_large(sess,coapMessage)==COAP_INVALID_MID)
 		throw("Unable to send message");
-}
-
-void CoapEndpoint::endSession(string uri){
-	activeSessions.erase(uri);
 }
 
 void CoapEndpoint::waitForDeath(){
