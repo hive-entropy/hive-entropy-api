@@ -31,7 +31,6 @@ class CoapEndpoint{
         coap_uri_t* localRootUri;
 
         std::map<std::pair<std::string,coap_request_t>,coap_resource_t*> registeredResources;
-        coap_endpoint_t*  listener;
 
         std::mutex contextLock;
 

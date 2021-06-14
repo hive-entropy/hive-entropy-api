@@ -2,15 +2,15 @@
 
 Peer::Peer(){}
 
-Peer::Peer(Hardware h, std::string address, float latency) : hardware(h), address(address), latency(latency) {
-    timestamp = std::time(nullptr);
+Peer::Peer(Hardware h, std::string address, std::chrono::steady_clock::duration latency) : hardware(h), address(address), latency(latency) {
+    timestamp = std::chrono::steady_clock::now();
 }
 
 void Peer::setAddress(std::string address){
     this->address = address;
 }
 
-void Peer::setLatency(float latency){
+void Peer::setLatency(std::chrono::steady_clock::duration latency){
     this->latency = latency;
 }
 
@@ -26,16 +26,16 @@ std::string Peer::getAddress(){
     return address;
 }
 
-float Peer::getLatency(){
+std::chrono::steady_clock::duration Peer::getLatency(){
     return latency;
 }
 
-std::time_t Peer::getTimestamp(){
+std::chrono::steady_clock::time_point Peer::getTimestamp(){
     return timestamp;
 }
 
 void Peer::refresh(){
-    timestamp = std::time(nullptr);
+    timestamp = std::chrono::steady_clock::now();
 }
 
 bool Peer::operator==(const Peer& other){

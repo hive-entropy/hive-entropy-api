@@ -9,6 +9,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <set>
+#include <spdlog/spdlog.h>
 
 #include <bits/stdc++.h>
 
@@ -57,8 +58,11 @@ class Distributor{
         static std::vector<Peer> peers;
         static std::map<std::string, Matrix<T>> storedPartialResults; //Cleanup
 
-        static std::time_t lastHardwareCheck;
+        static std::chrono::steady_clock::time_point lastHardwareCheck;
         static std::vector<Peer> healthyNodes;
+
+        std::mutex destructionLock;
+        bool destructionAsked;
 
         static coap_response_t handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id);
         static void handleResultResponse(Message m);
@@ -98,10 +102,12 @@ template<typename T>
 std::condition_variable Distributor<T>::addressCv;
 
 template<typename T>
-std::time_t Distributor<T>::lastHardwareCheck;
+std::chrono::steady_clock::time_point Distributor<T>::lastHardwareCheck;
 
 template<typename T>
 std::vector<Peer> Distributor<T>::healthyNodes = std::vector<Peer>();
+
+//TODO Add client side logs
 
 template<typename T>
 Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
@@ -116,7 +122,8 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
 
 template<typename T>
 Distributor<T>::~Distributor(){
-    //Something something free memory
+    std::unique_lock<std::mutex> lock(destructionLock);
+    destructionAsked = true;
 }
 
 template<typename T>
@@ -134,7 +141,7 @@ std::string Distributor<T>::distributeMatrixMultiplication(Matrix<T> a, Matrix<T
     cout << "[distribute] Initiated splitter thread" << endl;
 
     node->resolveNodeIdentities();
-    lastHardwareCheck = std::time(nullptr);
+    lastHardwareCheck =std::chrono::steady_clock::now();
 
     cout << "[distribute] Queried node availability" << endl;
 
@@ -148,6 +155,8 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
     std::unique_lock<std::mutex> lock(addressLock);
     bool timedOut = addressCv.wait_for(lock,std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT])*1000ms,[]{return peers.size()>=std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);});
 
+
+    std::unique_lock<std::mutex> uidLock(locks[uid]);
     if(m==MultiplicationMethod::ROW_COLUMN){
         int nodeCount = peers.size();
         int remainder = a.getRows()*b.getColumns() % nodeCount;
@@ -235,17 +244,18 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
     obs.detach();
 }
 
-
 template<typename T>
 void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m){
-    while(true){
-        std::unique_lock<std::mutex> lock(locks[uid]);
+    while(!destructionAsked){
+        std::this_thread::sleep_for(std::chrono::seconds(std::stoi(settings[Parameter::RESULT_TIMEOUT])));
+        std::unique_lock<std::mutex> dLock(destructionLock);
 
+        std::unique_lock<std::mutex> lock(locks[uid]);
         if(pendingBlocks[uid].empty())
             break;
 
         for(Block block : pendingBlocks[uid]){
-            if(block.getTimestamp()+Parameter::RESULT_TIMEOUT>std::time(nullptr)){
+            if(block.getTimestamp()+std::chrono::seconds(std::stoi(settings[Parameter::RESULT_TIMEOUT]))>std::chrono::steady_clock::now()){
                 Peer* responsible = block.getResponsible();
                 if(responsible!=nullptr){
                     std::unique_lock<std::mutex> addrLock(addressLock);
@@ -294,12 +304,12 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
                                         block.getStartRow(),
                                         0,
                                         block.getEndRow(),
-                                        a.getColumns()
+                                        a.getColumns()-1
                                     ),
                                     b.getSubmatrix(
                                         0,
                                         block.getStartCol(),
-                                        b.getRows(),
+                                        b.getRows()-1,
                                         block.getEndCol()
                                     ),
                                     block.getStartRow(),
@@ -353,12 +363,12 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
                                         block.getStartRow(),
                                         0,
                                         block.getEndRow(),
-                                        a.getColumns()
+                                        a.getColumns()-1
                                     ),
                                     b.getSubmatrix(
                                         0,
                                         block.getStartCol(),
-                                        b.getRows(),
+                                        b.getRows()-1,
                                         block.getEndCol()
                                     ),
                                     block.getStartRow(),
@@ -412,12 +422,12 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
                                         block.getStartRow(),
                                         0,
                                         block.getEndRow(),
-                                        a.getColumns()
+                                        a.getColumns()-1
                                     ),
                                     b.getSubmatrix(
                                         0,
                                         block.getStartCol(),
-                                        b.getRows(),
+                                        b.getRows()-1,
                                         block.getEndCol()
                                     ),
                                     block.getStartRow(),
@@ -431,8 +441,6 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
                 }
             }
         }
-        lock.unlock();
-        std::this_thread::sleep_for(std::chrono::seconds(std::stoi(settings[Parameter::RESULT_TIMEOUT])));
     }
 }
 
@@ -592,7 +600,7 @@ void Distributor<T>::handleHardwareResponse(Message m){
     Hardware hw(m.getContent());
     cout << "[handle-hardware] received specifications:" << endl;
     cout << hw.toString() << std::endl;
-    std::time_t delay = std::time(nullptr) - lastHardwareCheck;
+    std::chrono::steady_clock::duration delay = std::chrono::steady_clock::now() - lastHardwareCheck;
 
     Peer peer(hw,address,delay);
     peers.push_back(peer);

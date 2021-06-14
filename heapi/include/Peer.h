@@ -2,28 +2,29 @@
 #define PEER_H
 
 #include "Hardware.h"
-#include <ctime>
+
+#include <chrono>
 
 class Peer{
     private:
         Hardware hardware;
         std::string address;
-        float latency;
-        std::time_t timestamp;
+        std::chrono::steady_clock::duration latency;
+        std::chrono::steady_clock::time_point timestamp;
 
     public:
         Peer();
-        Peer(Hardware h, std::string address, float latency);
+        Peer(Hardware h, std::string address, std::chrono::steady_clock::duration latency);
         ~Peer() = default;
 
         void setHardware(Hardware h);
         void setAddress(std::string address);
-        void setLatency(float latency);
+        void setLatency(std::chrono::steady_clock::duration latency);
 
         Hardware getHardware();
         std::string getAddress();
-        float getLatency();
-        std::time_t getTimestamp();
+        std::chrono::steady_clock::duration getLatency();
+        std::chrono::steady_clock::time_point getTimestamp();
 
         void refresh();
 

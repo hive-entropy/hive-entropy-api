@@ -1,14 +1,14 @@
 #ifndef  BLOCK_H
 #define BLOCK_H
 
-#include <ctime>
+#include <chrono>
 
 #include "Peer.h"
 
 class Block{
     private:
         Peer* responsible;
-        std::time_t timestamp;
+        std::chrono::steady_clock::time_point timestamp;
 
         int startCol;
         int startRow;
@@ -26,7 +26,7 @@ class Block{
         int getStartRow();
         int getEndRow();
         int getEndCol();
-        std::time_t getTimestamp();
+        std::chrono::steady_clock::time_point getTimestamp();
         std::string getTaskId();
 
         void setTaskId(std::string id);

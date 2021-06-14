@@ -52,6 +52,7 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 CoapEndpoint::~CoapEndpoint(){
 	keepAlive = false;
 	loop.join();
+	coap_free_context(context);
 }
 
 void CoapEndpoint::run(){
@@ -114,7 +115,7 @@ void CoapEndpoint::send(Message m){
 	inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
 	dstAddr.addr.sin.sin_port = htons(destParts->port);
 
-	std::unique_lock<std::mutex> lock(contextLock);
+	//std::unique_lock<std::mutex> lock(contextLock);
 	sess = coap_session_get_by_peer(context,&dstAddr,0);
 	if(!sess){
 		sess = coap_new_client_session(context,&localAddress,&dstAddr,COAP_PROTO_UDP);

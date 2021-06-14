@@ -1,11 +1,11 @@
 #include "Block.h"
 
 Block::Block(Peer* responsible, int startRow, int endRow, int startCol, int endCol) : responsible(responsible), startCol(startCol), startRow(startRow), endCol(endCol), endRow(endRow){
-    timestamp = std::time(nullptr);
+    timestamp = std::chrono::steady_clock::now();
 }
 
 Block::Block(int startRow, int startCol) : startRow(startRow), startCol(startCol) {
-    timestamp = std::time(nullptr);
+    timestamp = std::chrono::steady_clock::now();
 }
 
 Peer* Block::getResponsible(){
@@ -28,7 +28,7 @@ int Block::getEndCol(){
     return endCol;
 }
 
-std::time_t Block::getTimestamp(){
+std::chrono::steady_clock::time_point Block::getTimestamp(){
     return timestamp;
 }
 
@@ -41,7 +41,7 @@ void Block::setTaskId(std::string id){
 }
 
 void Block::refresh(){
-    timestamp = std::time(nullptr);
+    timestamp = std::chrono::steady_clock::now();
 }
 
 bool Block::operator==(const Block& other){
