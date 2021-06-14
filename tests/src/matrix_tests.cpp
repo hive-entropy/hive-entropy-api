@@ -300,7 +300,7 @@ SCENARIO("We should be able to do mathematical operations on matrices","[matrix-
             }
         }
 
-        WHEN("We multiplay them in a third matrix"){
+        WHEN("We multiply them in a third matrix"){
 
             Matrix<int> c = a*b;
 
@@ -509,6 +509,51 @@ SCENARIO("We should be able to compare matrices","[matrix-logic]"){
             THEN("The two matrices should be compared as not equal"){
                 REQUIRE_FALSE(a==b);
                 REQUIRE(a!=b);
+            }
+        }
+    }
+}
+
+SCENARIO("We should be able to convolve matrices") {
+    GIVEN("A matrix of int and an identity mask") {
+        int matrixTab[] = {1, 2, 3,
+                           4, 5, 6,
+                           7, 8, 9};
+        int maskTab[] = {0, 0, 0,
+                         0, 1, 0,
+                         0, 0, 0};
+        Matrix<int> matrix(3, 3, matrixTab);
+        Matrix<int> mask(3, 3, maskTab);
+
+        WHEN("We convolve the matrix with the mask") {
+            Matrix<int> result = matrix.convolve(mask);
+
+            THEN("The result should be equal to the convolved matrix") {
+                REQUIRE(result == matrix);
+            }
+        }
+        WHEN("We convolve the matrix with the mask and use crop edge handling") {
+            Matrix<int> result = matrix.convolve(mask, EdgeHandling::Crop);
+
+            THEN("The result matrix should be smaller but equal to the original") {
+                REQUIRE(result.getRows() < matrix.getRows());
+                REQUIRE(result.getColumns() < matrix.getColumns());
+                REQUIRE(result[0][0] == matrix[1][1]);
+            }
+        }
+    }
+    GIVEN("A non-square mask") {
+        int matrixTab[] = {1, 2, 3,
+                           4, 5, 6,
+                           7, 8, 9};
+        int maskTab[] = {0, 0, 0,
+                         0, 0, 0};
+        Matrix<int> matrix(3, 3, matrixTab);
+        Matrix<int> mask(2, 3, maskTab);
+
+        WHEN("We convolve the matrix with the mask") {
+            THEN("The program should throw an exception") {
+                REQUIRE_THROWS(matrix.convolve(mask));
             }
         }
     }

@@ -5,6 +5,9 @@
 #include <type_traits>
 #include <malloc.h>
 #include <openblas/cblas.h>
+#include <functional>
+#include <cmath>
+#include <map>
 
 #include "IncompatibleDimensionsException.h"
 #include "OutOfBoundException.h"
@@ -17,6 +20,14 @@ namespace MatrixArchetype{
     static const char ID = 'I';
 }
 
+enum EdgeHandling {
+    Extend,
+    Wrap,
+    Mirror,
+    Crop,
+    KernelCrop
+};
+
 template<typename T>
 class Matrix{
 
@@ -28,6 +39,13 @@ class Matrix{
         int elements;
         int type;
         T* data;
+
+        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<T> mask) >> edgeHandlingMethods;
+        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<T> mask);
+        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<T> mask);
+        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<T> mask);
+        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<T> mask);
+        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<T> mask);
 
     public:
         explicit Matrix(int rows, int columns, T* data);
@@ -46,14 +64,15 @@ class Matrix{
         T* getRow(int i);
         T* getColumn(int j);
 
-        T* getData();
-        int getRows();
-        int getColumns();
-        int getType();
-        int getElements(); 
+        T* getData() const;
+        int getRows() const;
+        int getColumns() const;
+        int getType() const;
+        int getElements() const;
 
         void setData(T* data);
 
+        Matrix convolve(Matrix<T> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend);
         Matrix operator*(Matrix<T> const& other);
         Matrix operator+(Matrix<T> const& other);
         Matrix operator-(Matrix<T> const& other);
@@ -62,8 +81,10 @@ class Matrix{
         Matrix& operator-=(Matrix<T> const& other);
         bool operator==(Matrix<T> const& other) const;
         bool operator!=(Matrix<T> const& other) const;
+        T* operator[](int const& index) const;
 
         void show();
+        std::string toString();
 };
 
 template<typename T>
@@ -129,7 +150,6 @@ void Matrix<T>::putRow(int i, T* elems){
         data[columns*i+j] = elems[j];
 }
 
-
 template<typename T>
 void Matrix<T>::put(int i, int j, T elem){
     if(i<0||i>=rows)
@@ -168,9 +188,9 @@ Matrix<T> Matrix<T>::getSubmatrix(int startRow, int startColumn,int endRow, int 
 template<typename T>
 T Matrix<T>::get(int i, int j){
     if(i<0||i>=rows)
-        throw new OutOfBoundException("i",i,std::vector<int>(0,rows));
+        throw OutOfBoundException("i",i,std::vector<int>(0,rows));
     else if(j<0||j>=columns)
-        throw new OutOfBoundException("j",j,std::vector<int>(0,columns));
+        throw OutOfBoundException("j",j,std::vector<int>(0,columns));
     return data[columns*i+j];
 }
 
@@ -195,27 +215,27 @@ T* Matrix<T>::getColumn(int j){
 }
 
 template<typename T>
-T* Matrix<T>::getData(){
+T* Matrix<T>::getData() const {
     return data;
 }
 
 template<typename T>
-int Matrix<T>::getRows(){
+int Matrix<T>::getRows() const {
     return rows;
 }
 
 template<typename T>
-int Matrix<T>::getColumns(){
+int Matrix<T>::getColumns() const {
     return columns;
 }
 
 template<typename T>
-int Matrix<T>::getType(){
+int Matrix<T>::getType() const {
     return type;
 }
 
 template<typename T>
-int Matrix<T>::getElements(){
+int Matrix<T>::getElements() const {
     return elements;
 }
 
@@ -320,14 +340,141 @@ bool Matrix<T>::operator!=(Matrix<T> const& other) const{
 }
 
 template<typename T>
-void Matrix<T>::show(){
-    for(int i=0;i<rows;i++){
-        std::cout << "[ ";
-        for(int j=0;j<columns;j++){
-            std::cout << data[columns*i+j] << " ";
+T *Matrix<T>::operator[](const int &index) const {
+    return &data[index * columns];
+}
+
+template<typename T>
+void Matrix<T>::show() {
+    std::cout << toString() << std::endl;
+}
+
+template<typename T>
+std::string Matrix<T>::toString() {
+    std::string output;
+
+    for(int i = 0 ; i < rows ; i++)
+    {
+        output += "[ ";
+        for(int j = 0 ; j < columns ; j++)
+        {
+            output += std::to_string(data[columns * i + j]);
+            output += " ";
         }
-        std::cout << "]" << std::endl;
+        output += "]\n";
     }
+
+    return output;
+}
+
+template<typename T>
+std::ostream& operator<< (std::ostream& os, Matrix<T> value) {
+    os << value.toString();
+    return os;
+}
+
+/*////////////////////////////////
+///     MATRIX CONVOLUTION     ///
+////////////////////////////////*/
+
+template<typename T>
+std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<T> mask) >> Matrix<T>::edgeHandlingMethods = {
+        {EdgeHandling::Extend, Matrix<T>::extendConvolve},
+        {EdgeHandling::Wrap, Matrix<T>::wrapConvolve},
+        {EdgeHandling::Mirror, Matrix<T>::mirrorConvolve},
+        {EdgeHandling::Crop, Matrix<T>::cropConvolve},
+        {EdgeHandling::KernelCrop, Matrix<T>::kernelCropConvolve}
+};
+
+template<typename T>
+Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<T> mask) {
+    // Compute the mask offset
+    int offset = std::floor((double) mask.rows / 2.0);
+    // Create the result matrix
+    Matrix<T> result(matrix.rows + offset, matrix.columns + offset, MatrixArchetype::ZEROS);
+    // Place old data into the result matrix
+    for (int row = 0; row < matrix.rows; ++row) {
+        for (int col = 0; col < matrix.columns; ++col) {
+            result[row + offset][col + offset] = matrix[row][col];
+        }
+    }
+    // Extend the matrix data
+    while (offset > 0) {
+        // Fill the borders
+        for (int row = offset; row < result.rows - offset; ++row) {
+            result[row][offset - 1] = result[row][offset];
+            result[row][result.columns - offset + 1] = result[row][result.columns - offset];
+        }
+        for (int col = offset; col < result.columns - offset; ++col) {
+            result[offset - 1][col] = result[offset][col];
+            result[result.rows - offset + 1][col] = result[result.rows - offset][col];
+        }
+        // Fill the corners
+        result[offset - 1][offset - 1] = result[offset][offset];
+        result[result.rows - offset + 1][offset - 1] = result[result.rows - offset][offset];
+        result[offset + 1][result.columns - offset + 1] = result[offset][result.columns - offset];
+        result[result.rows - offset + 1][result.columns - offset + 1] = result[result.rows - offset][result.columns - offset];
+
+        offset--;
+    }
+    // Convolve the matrix and return the result
+    return cropConvolve(result, mask);
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<T> mask) {
+    throw "Not implemented yet!";
+    return Matrix<T>(0, 0, nullptr);
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<T> mask) {
+    throw "Not implemented yet!";
+    return Matrix<T>(0, 0, nullptr);
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<T> mask) {
+    // Compute the mask offset
+    int offset = std::floor((double) mask.rows / 2.0);
+    // Create the result matrix
+    Matrix<T> result(matrix.rows - offset, matrix.columns - offset, MatrixArchetype::ZEROS);
+    // Create the accumulator
+    int accumulator;
+
+    // For each pixel in the result matrix
+    for (int row = 0; row < result.rows; ++row) {
+        for (int col = 0; col < result.columns; ++col) {
+            // Reset the accumulator
+            accumulator = 0;
+
+            // For each pixel in the mask
+            for (int maskRow = 0; maskRow < mask.rows; ++maskRow) {
+                for (int maskCol = 0; maskCol < mask.columns; ++maskCol) {
+                    T temp = matrix[row + maskRow][col + maskCol];
+                    T temp2 = mask[maskRow][maskCol];
+                    accumulator += temp * temp2; // No need to subtract the mask offset because the result image already has an offset
+                }
+            }
+
+            // Update the result matrix's pixel
+            result[row][col] = accumulator;
+        }
+    }
+
+    return result;
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<T> mask) {
+    throw "Not implemented yet!";
+    return Matrix<T>(0, 0, nullptr);
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::convolve(Matrix<T> const &mask, EdgeHandling edgeHandler) {
+    // TODO: Throw an exception if the mask is not a odd square
+    return edgeHandlingMethods[edgeHandler](*this, mask);
 }
 
 #endif
