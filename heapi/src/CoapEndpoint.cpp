@@ -6,7 +6,7 @@
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
 
-	coap_set_log_level(LOG_DEBUG);
+	//coap_set_log_level(LOG_DEBUG);
 
 	//Failsafe URI format
 	if(rootUri.find("coap://")==std::string::npos)
@@ -98,7 +98,9 @@ void CoapEndpoint::send(Message m){
 	string sessId = destination;
 	if(sessId.find("coap://")==0)
 		sessId = sessId.substr(7,sessId.size()-1);
-	if(sessId.find("/")!=std::string::npos)
+	if(sessId.find(":")!=std::string::npos)
+		sessId = sessId.substr(0,sessId.find(":"));
+	if(sessId.find(":")!=std::string::npos)
 		sessId = sessId.substr(0,sessId.find("/"));
 
 	coap_session_t* sess;
@@ -109,16 +111,13 @@ void CoapEndpoint::send(Message m){
 	coap_address_init(&dstAddr);
 	dstAddr.addr.sin.sin_family = AF_INET;
 
-	char* uriBuf = (char*) malloc(destParts->host.length*sizeof(char));
-	strncpy(uriBuf,reinterpret_cast<const char*>(destParts->host.s),destParts->host.length);
-
-	inet_pton(AF_INET, uriBuf, &dstAddr.addr.sin.sin_addr);
+	inet_pton(AF_INET, sessId.c_str(), &dstAddr.addr.sin.sin_addr);
 	dstAddr.addr.sin.sin_port = htons(destParts->port);
 
-	//std::unique_lock<std::mutex> lock(contextLock);
 	sess = coap_session_get_by_peer(context,&dstAddr,0);
 	if(!sess){
 		sess = coap_new_client_session(context,&localAddress,&dstAddr,COAP_PROTO_UDP);
+		//coap_session_set_max_retransmit(sess,10);
 		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("01234567"));
 	}
 	
