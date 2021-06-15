@@ -65,14 +65,12 @@ float Hardware::findProcessorCoreNumber(){
     
     char socket[sizeof(float)], core[sizeof(float)];
 
-    execUnixCMD("lscpu | awk '/socket/{print $4}' | tr -d '\n'", socket);
     execUnixCMD("nproc | tr -d '\n'", core);
     /* Open the command for reading. */
     
 
-    float numberOfSocket = stof(socket);
     float numberOfCore = stof(core);
-     return numberOfSocket * numberOfCore;
+     return numberOfCore;
 }
 
 float Hardware::findProcessorFrequency(){
