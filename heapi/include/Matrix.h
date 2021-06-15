@@ -40,15 +40,21 @@ class Matrix{
         int type;
         T* data;
 
-        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<T> mask) >> edgeHandlingMethods;
-        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<T> mask);
-        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<T> mask);
-        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<T> mask);
-        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<T> mask);
-        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<T> mask);
+        template<typename M>
+        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask) >> edgeHandlingMethods;
+        template<typename M>
+        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<M> mask);
+        template<typename M>
+        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<M> mask);
+        template<typename M>
+        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<M> mask);
+        template<typename M>
+        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<M> mask);
+        template<typename M>
+        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask);
 
     public:
-        explicit Matrix(int rows, int columns, T* data);
+        Matrix(int rows, int columns, T* data);
         Matrix(int rows, int columns, char archetype=MatrixArchetype::ZEROS);
         Matrix(const Matrix& m);
         ~Matrix();
@@ -72,7 +78,8 @@ class Matrix{
 
         void setData(T* data);
 
-        Matrix convolve(Matrix<T> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend);
+        template<typename M>
+        Matrix convolve(Matrix<M> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend);
         Matrix operator*(Matrix<T> const& other);
         Matrix operator+(Matrix<T> const& other);
         Matrix operator-(Matrix<T> const& other);
@@ -378,18 +385,21 @@ std::ostream& operator<< (std::ostream& os, Matrix<T> value) {
 ////////////////////////////////*/
 
 template<typename T>
-std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<T> mask) >> Matrix<T>::edgeHandlingMethods = {
-        {EdgeHandling::Extend, Matrix<T>::extendConvolve},
-        {EdgeHandling::Wrap, Matrix<T>::wrapConvolve},
-        {EdgeHandling::Mirror, Matrix<T>::mirrorConvolve},
-        {EdgeHandling::Crop, Matrix<T>::cropConvolve},
-        {EdgeHandling::KernelCrop, Matrix<T>::kernelCropConvolve}
+template<typename M>
+std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask) >> Matrix<T>::edgeHandlingMethods = {
+        {EdgeHandling::Extend, Matrix<T>::extendConvolve<M>},
+        {EdgeHandling::Wrap, Matrix<T>::wrapConvolve<M>},
+        {EdgeHandling::Mirror, Matrix<T>::mirrorConvolve<M>},
+        {EdgeHandling::Crop, Matrix<T>::cropConvolve<M>},
+        {EdgeHandling::KernelCrop, Matrix<T>::kernelCropConvolve<M>}
 };
 
 template<typename T>
-Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<T> mask) {
+template<typename M>
+Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask) {
+    static_assert(std::is_arithmetic<M>::value, "The kernel type must be an arithmetic type");
     // Compute the mask offset
-    int offset = std::floor((double) mask.rows / 2.0);
+    int offset = std::floor((double) mask.getRows() / 2.0);
     // Create the result matrix
     Matrix<T> result(matrix.rows + offset, matrix.columns + offset, MatrixArchetype::ZEROS);
     // Place old data into the result matrix
@@ -422,21 +432,24 @@ Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<T> mask) {
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<T> mask) {
+template<typename M>
+Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<M> mask) {
     throw "Not implemented yet!";
     return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<T> mask) {
+template<typename M>
+Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask) {
     throw "Not implemented yet!";
     return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<T> mask) {
+template<typename M>
+Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
     // Compute the mask offset
-    int offset = std::floor((double) mask.rows / 2.0);
+    int offset = std::floor((double) mask.getRows() / 2.0);
     // Create the result matrix
     Matrix<T> result(matrix.rows - offset, matrix.columns - offset, MatrixArchetype::ZEROS);
     // Create the accumulator
@@ -449,8 +462,8 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<T> mask) {
             accumulator = 0;
 
             // For each pixel in the mask
-            for (int maskRow = 0; maskRow < mask.rows; ++maskRow) {
-                for (int maskCol = 0; maskCol < mask.columns; ++maskCol) {
+            for (int maskRow = 0; maskRow < mask.getRows(); ++maskRow) {
+                for (int maskCol = 0; maskCol < mask.getColumns(); ++maskCol) {
                     T temp = matrix[row + maskRow][col + maskCol];
                     T temp2 = mask[maskRow][maskCol];
                     accumulator += temp * temp2; // No need to subtract the mask offset because the result image already has an offset
@@ -466,15 +479,17 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<T> mask) {
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<T> mask) {
+template<typename M>
+Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask) {
     throw "Not implemented yet!";
     return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::convolve(Matrix<T> const &mask, EdgeHandling edgeHandler) {
+template<typename M>
+Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling edgeHandler) {
     // TODO: Throw an exception if the mask is not a odd square
-    return edgeHandlingMethods[edgeHandler](*this, mask);
+    return edgeHandlingMethods<M>[edgeHandler](*this, mask);
 }
 
 #endif
