@@ -410,7 +410,7 @@ Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask) {
     }
     // Extend the matrix data
     while (offset > 0) {
-        // Fill the borders
+        /*// Fill the borders
         for (int row = offset; row < result.rows - offset; ++row) {
             result[row][offset - 1] = result[row][offset];
             result[row][result.columns - offset + 1] = result[row][result.columns - offset];
@@ -418,12 +418,12 @@ Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask) {
         for (int col = offset; col < result.columns - offset; ++col) {
             result[offset - 1][col] = result[offset][col];
             result[result.rows - offset + 1][col] = result[result.rows - offset][col];
-        }
+        }*/
         // Fill the corners
-        result[offset - 1][offset - 1] = result[offset][offset];
+        /*result[offset - 1][offset - 1] = result[offset][offset];
         result[result.rows - offset + 1][offset - 1] = result[result.rows - offset][offset];
         result[offset + 1][result.columns - offset + 1] = result[offset][result.columns - offset];
-        result[result.rows - offset + 1][result.columns - offset + 1] = result[result.rows - offset][result.columns - offset];
+        result[result.rows - offset + 1][result.columns - offset + 1] = result[result.rows - offset][result.columns - offset];*/
 
         offset--;
     }
@@ -448,10 +448,17 @@ Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask) {
 template<typename T>
 template<typename M>
 Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
+    // Compute the mask mean
+    float mean = 0;
+    for (int i = 0; i < mask.getElements(); i++) {
+        mean = mask.getData()[i];
+    }
+    mean /= mask.getElements();
     // Compute the mask offset
     int offset = std::floor((double) mask.getRows() / 2.0);
     // Create the result matrix
-    Matrix<T> result(matrix.rows - offset, matrix.columns - offset, MatrixArchetype::ZEROS);
+//    Matrix<T> result(matrix.rows - offset * 2, matrix.columns - offset * 2, MatrixArchetype::ONES);
+    Matrix<T> result(matrix);
     // Create the accumulator
     int accumulator;
 
@@ -462,16 +469,17 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
             accumulator = 0;
 
             // For each pixel in the mask
-            for (int maskRow = 0; maskRow < mask.getRows(); ++maskRow) {
-                for (int maskCol = 0; maskCol < mask.getColumns(); ++maskCol) {
-                    T temp = matrix[row + maskRow][col + maskCol];
+            for (int maskRow = -offset; maskRow < mask.getRows() - offset; ++maskRow) {
+                for (int maskCol = -offset; maskCol < mask.getColumns() - offset; ++maskCol) {
+                    T temp = matrix[row + offset + maskRow][col + offset + maskCol];
                     T temp2 = mask[maskRow][maskCol];
-                    accumulator += temp * temp2; // No need to subtract the mask offset because the result image already has an offset
+                    accumulator += (temp * temp2); // No need to subtract the mask offset because the result image already has an offset
                 }
             }
 
             // Update the result matrix's pixel
-            result[row][col] = accumulator;
+            result[row - offset][col - offset] = accumulator * mean;
+//            result[row][col] = matrix[row][col];
         }
     }
 
