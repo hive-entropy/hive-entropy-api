@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(HiveEntropyAPI VERSION 0.1.1 LANGUAGES CXX)
+set (CMAKE_CXX_STANDARD 17)
+
+project(HiveEntropyAPI VERSION 0.9.0 LANGUAGES CXX)
+
+
 
 option(BUILD_EXAMPLES "Build Examples" ON)
 

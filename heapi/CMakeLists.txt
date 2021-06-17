@@ -71,13 +71,13 @@ if(NOT TARGET OpenBLAS::OpenBLAS)
         endif()
 endif()
 
-# Set the compiler to use C++11
+# Set the compiler to use C++17
 target_compile_features(HiveEntropyAPI
         PRIVATE cxx_std_17
         )
 
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g
+        PRIVATE -Wall -g -std=c++17
 )
 
 # Link the OpenBlas library to the target
