@@ -56,7 +56,8 @@ class Matrix{
     public:
         Matrix(int rows, int columns, T* data);
         Matrix(int rows, int columns, char archetype=MatrixArchetype::ZEROS);
-        Matrix(const Matrix& m);
+        template<typename M>
+        Matrix(const Matrix<M>& m);
         ~Matrix();
 
         void putColumn(int j, T* elems);
@@ -101,6 +102,7 @@ Matrix<T>::~Matrix(){
 
 template<typename T>
 Matrix<T>::Matrix(int rows, int columns, T* data) : rows(rows), columns(columns){
+    elements = rows*columns;
     this->data = (T*) malloc(rows*columns*sizeof(T));
     for(int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
@@ -131,14 +133,15 @@ Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(c
 }
 
 template<typename T>
-Matrix<T>::Matrix(const Matrix& m){
-    rows = m.rows;
-    columns = m.columns;
+template<typename M>
+Matrix<T>::Matrix(const Matrix<M>& m){
+    rows = m.getRows();
+    columns = m.getColumns();
     elements = rows*columns;
     this->data = (T*) malloc(rows*columns*sizeof(T));
     for (int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
-            data[columns*i+j] = static_cast<T>(m.data[m.columns*i+j]);
+            data[columns*i+j] = static_cast<T>(m.getData()[m.getColumns() * i + j]);
 }
 
 template<typename T>
@@ -448,40 +451,60 @@ Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask) {
 template<typename T>
 template<typename M>
 Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
+//    printf("Function cropConvolve\n");
     // Compute the mask mean
     float mean = 0;
     for (int i = 0; i < mask.getElements(); i++) {
-        mean = mask.getData()[i];
+//        printf("Data : %d\n", mask.getData()[i]);
+        mean += (float) mask.getData()[i];
     }
-    mean /= mask.getElements();
+//    printf("Mask sum : %f\n", mean);
     // Compute the mask offset
     int offset = std::floor((double) mask.getRows() / 2.0);
-    // Create the result matrix
-//    Matrix<T> result(matrix.rows - offset * 2, matrix.columns - offset * 2, MatrixArchetype::ONES);
-    Matrix<T> result(matrix);
+    // Create the interMatrix matrix
+    Matrix<int> interMatrix(matrix.rows - offset * 2, matrix.columns - offset * 2, MatrixArchetype::ZEROS);
+//    Matrix<T> interMatrix(matrix);
     // Create the accumulator
     int accumulator;
+    int minValue = INT16_MAX, maxValue = INT16_MIN;
 
-    // For each pixel in the result matrix
-    for (int row = 0; row < result.rows; ++row) {
-        for (int col = 0; col < result.columns; ++col) {
+    // For each pixel in the interMatrix matrix
+    for (int row = 0; row < interMatrix.getRows(); ++row) {
+        for (int col = 0; col < interMatrix.getColumns(); ++col) {
             // Reset the accumulator
             accumulator = 0;
 
             // For each pixel in the mask
             for (int maskRow = -offset; maskRow < mask.getRows() - offset; ++maskRow) {
                 for (int maskCol = -offset; maskCol < mask.getColumns() - offset; ++maskCol) {
-                    T temp = matrix[row + offset + maskRow][col + offset + maskCol];
-                    T temp2 = mask[maskRow][maskCol];
-                    accumulator += (temp * temp2); // No need to subtract the mask offset because the result image already has an offset
+                    T matrixValue = matrix[row + offset + maskRow][col + offset + maskCol];
+                    T maskValue = mask[maskRow][maskCol];
+                    accumulator += (matrixValue * maskValue);
                 }
             }
 
-            // Update the result matrix's pixel
-            result[row - offset][col - offset] = accumulator * mean;
-//            result[row][col] = matrix[row][col];
+            // Update the interMatrix matrix's pixel
+            float temp = mean != 0 ? accumulator / mean : accumulator;
+            minValue = fmin(minValue, temp);
+            maxValue = fmax(maxValue, temp);
+            interMatrix[row][col] = temp;
+//            printf("Mean : %f, Accumulator : %d, Temp : %f, Min Value: %d, Max value : %d\n", mean, accumulator, temp, minValue, maxValue);
         }
     }
+
+    if (maxValue != 0) {
+        for (int row = 0; row < interMatrix.getRows(); ++row)
+        {
+            for (int col = 0; col < interMatrix.getColumns(); ++col)
+            {
+//                printf("interMatrix[%d][%d] = (%d - %d / %d) * 255 =", row, col, interMatrix[row][col], minValue, maxValue);
+                interMatrix[row][col] = (int) (((float) (interMatrix[row][col] - minValue) / (float) maxValue) * 255);
+//                printf("%d\n", interMatrix[row][col]);
+            }
+        }
+    }
+
+    Matrix<T> result(interMatrix);
 
     return result;
 }

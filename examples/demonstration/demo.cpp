@@ -59,10 +59,21 @@ cv::Mat gaussianFilter(cv::Mat image){
 }
 
 int main() {
-    float maskTab[] = {1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
-                       2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
-                       1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f};
-    Matrix<float> mask(3, 3, maskTab);
+    /*float maskTab[] = {-1, -1, -1,
+                       -1,  8, -1,
+                       -1, -1, -1};*/
+    /*float maskTab[] = {0, -1, 0,
+                       -1, 5, -1,
+                       0, -1, 0};*/
+//    Matrix<float> mask(3, 3, maskTab);
+
+    short maskTab[] = {1, 2, 1,
+                       2, 4, 2,
+                       1, 2, 1};
+    /*short maskTab[] = {0, 0, 0,
+                       0, 1, 0,
+                       0, 0, 0};*/
+    Matrix<short> mask(3, 3, maskTab);
 
     cv::VideoCapture camera(0, cv::CAP_V4L2);
     camera.set(3, WIDTH);
@@ -93,7 +104,7 @@ int main() {
 
         heMatrix = heMatrix.convolve(mask, EdgeHandling::Crop);
 
-        cv::Mat output(grey.rows, grey.cols, CV_8UC1, heMatrix.getData());
+        cv::Mat output(heMatrix.getRows(), heMatrix.getColumns(), CV_8UC1, heMatrix.getData());
 
         // Display the image
         cv::imshow("Webcam", output);
