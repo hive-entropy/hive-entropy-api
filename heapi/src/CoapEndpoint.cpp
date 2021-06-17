@@ -6,7 +6,7 @@
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
 
-	//coap_set_log_level(LOG_DEBUG);
+	coap_set_log_level(LOG_DEBUG);
 
 	//Failsafe URI format
 	if(rootUri.find("coap://")==std::string::npos)

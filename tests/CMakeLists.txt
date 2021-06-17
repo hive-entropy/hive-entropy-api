@@ -53,11 +53,11 @@ target_include_directories(Catch_FakeIt
 
 add_executable (HiveEntropyTest
         src/tests.cpp 
-        #src/matrix_tests.cpp
-        #src/coap_endpoint_tests.cpp
-        #src/message_tests.cpp
-        #src/serializer_tests.cpp
-        src/benchmark.cpp
+        src/matrix_tests.cpp
+        src/coap_endpoint_tests.cpp
+        src/message_tests.cpp
+        src/serializer_tests.cpp
+        #src/benchmark.cpp
 )
 
 target_link_libraries(HiveEntropyTest

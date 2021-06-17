@@ -71,6 +71,7 @@ class Distributor{
         static void handleHealthResponse(Message m);
 
         void splitMatrixMultiplicationTask(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m);
+        void splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Matrix<T> b);
 
         void observer(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m);
 
@@ -107,17 +108,17 @@ std::chrono::steady_clock::time_point Distributor<T>::lastHardwareCheck;
 template<typename T>
 std::vector<Peer> Distributor<T>::healthyNodes = std::vector<Peer>();
 
-//TODO Add client side logs
-
 template<typename T>
 Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     node->registerResponseHandler(handleResponse);
     configure(Parameter::ASSISTANCE_TIMEOUT,5);
-    configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,12);
+    configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,2);
     configure(Parameter::RESULT_TIMEOUT,10);
     configure(Parameter::HEALTH_TIMEOUT,2);
     configure(Parameter::MAX_THREADS,4);
     configure(Parameter::FRESHNESS,10);
+    spdlog::set_level(spdlog::level::info);
+    spdlog::set_pattern("[%H:%M:%S.%e] [%!] (%l) %v");
 }
 
 template<typename T>
@@ -130,20 +131,40 @@ template<typename T>
 std::string Distributor<T>::distributeMatrixMultiplication(Matrix<T> a, Matrix<T> b, MultiplicationMethod m){
     std::string uid = generateUID();
 
-    cout << "[distribute] Obtained uid="+uid << endl;
+    spdlog::info("Obtained following UID={}",uid);
 
     Matrix<T> result(a.getRows(),b.getColumns());
     storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid,result));
-    cout << "[distribute] Created result to use for calculation" << endl;
+    spdlog::info("Created result for UID={}",uid);
 
     std::thread splitter(&Distributor<T>::splitMatrixMultiplicationTask,this,uid,a,b,m);
     splitter.detach();
-    cout << "[distribute] Initiated splitter thread" << endl;
+    spdlog::info("Created splitter thread for UID={}", uid);
 
     node->resolveNodeIdentities();
     lastHardwareCheck =std::chrono::steady_clock::now();
+    spdlog::info("Queried node assistance");
 
-    cout << "[distribute] Queried node availability" << endl;
+    return uid;
+}
+
+template<typename T>
+std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b){
+    std::string uid = generateUID();
+
+    spdlog::info("Obtained following UID={}",uid);
+
+    Matrix<T> result(a.getRows()-b.getRows()/2,a.getColumns()-b.getColumns()/2);
+    storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid,result));
+    spdlog::info("Created result for UID={}",uid);
+
+    std::thread splitter(&Distributor<T>::splitMatrixConvolutionTask,this,uid,a,b);
+    splitter.detach();
+    spdlog::info("Created splitter thread for UID={}", uid);
+
+    node->resolveNodeIdentities();
+    lastHardwareCheck =std::chrono::steady_clock::now();
+    spdlog::info("Queried node assistance");
 
     return uid;
 }
@@ -151,7 +172,7 @@ std::string Distributor<T>::distributeMatrixMultiplication(Matrix<T> a, Matrix<T
 template<typename T> 
 void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m){
     
-    cout << "[splitter] Waiting on lock for answers" << endl;
+    spdlog::info("Waiting on assistance response lock");
     std::unique_lock<std::mutex> lock(addressLock);
     bool timedOut = addressCv.wait_for(lock,std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT])*1000ms,[]{return peers.size()>=std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);});
 
@@ -161,8 +182,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
         int nodeCount = peers.size();
         int remainder = a.getRows()*b.getColumns() % nodeCount;
         int packetsPerNode = (a.getRows()*b.getColumns() - remainder) / nodeCount;
-
-        cout << "[splitter] Sending "+to_string(packetsPerNode)+" packets to "+to_string(nodeCount)+" nodes, and calculating "+to_string(remainder)+" packets locally" << endl;
+        spdlog::info("Sending {} packets to {} nodes and calculating {} packets locally", packetsPerNode, nodeCount, remainder);
 
         int counter = 0;
         for(int i=0;i<a.getRows();i++){
@@ -176,7 +196,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                     Block block(&peers[counter%nodeCount],i,j,i,j);
                     pendingBlocks[uid].push_back(block);
                     node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),first,second,uid);
-                    //cout << "[splitter] Sent packet ("+to_string(i)+", "+to_string(j)+") to node "+peers[counter%nodeCount] << endl;
+                    spdlog::info("Sent packet ({},{}) to node {}",i,j,peers[counter%nodeCount].getAddress());
                 }
                 counter++;
             }
@@ -195,7 +215,8 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                     break;
             }
         }
-        
+        spdlog::info("Splitting matrix in a {0} by {0} checkerboard",gridSize);
+
         //Iterate through steps
         int counter = 0;
         int taskId = 0;
@@ -205,6 +226,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                 
                 for(int k=0; k<gridSize;k++){
                     node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,k*a.getColumns()/gridSize,(i+1)*a.getRows()/gridSize-1,(k+1)*a.getColumns()/gridSize-1),b.getSubmatrix(k*b.getRows()/gridSize,j*b.getColumns()/gridSize,(k+1)*b.getRows()/gridSize-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,gridSize,to_string(taskId),uid);
+                    spdlog::info("Sent packet for result ({},{}) to node {}",i,j,peers[counter%nodeCount].getAddress());
                 }
 
 
@@ -227,7 +249,9 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                     break;
             }
         }
-        
+        spdlog::info("Splitting matrix in a {0} by {0} checkerboard",gridSize);
+
+
         //Iterate through checkerboard
         int counter = 0;
         for(int i=0; i<gridSize; i++){
@@ -235,6 +259,7 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
                 node->sendMatrixMultiplicationTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i*a.getRows()/gridSize,0,(i+1)*a.getRows()/gridSize-1,a.getColumns()-1),b.getSubmatrix(0,j*b.getColumns()/gridSize,b.getRows()-1,(j+1)*b.getColumns()/gridSize-1),i*a.getRows()/gridSize,j*b.getColumns()/gridSize,uid);
                 Block block(&peers[counter%nodeCount],i*a.getRows()/gridSize, (i+1)*a.getRows()/gridSize-1,  j*b.getColumns()/gridSize, (j+1)*b.getColumns()/gridSize-1);
                 pendingBlocks[uid].push_back(block);
+                spdlog::info("Sent packet ({},{}) to node {}",i,j,peers[counter%nodeCount].getAddress());
                 counter++;
             }
         }
@@ -242,6 +267,58 @@ void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a,
 
     std::thread obs(&Distributor<T>::observer,this,uid,a,b,m);
     obs.detach();
+}
+
+template<typename T> 
+void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Matrix<T> b){
+    spdlog::info("Waiting on assistance response lock");
+    std::unique_lock<std::mutex> lock(addressLock);
+    bool timedOut = addressCv.wait_for(lock,std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT])*1000ms,[]{return peers.size()>=std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);});
+
+    std::unique_lock<std::mutex> uidLock(locks[uid]);
+
+    int nodeCount = peers.size();
+
+    bool splitAlongRow = (a.getRows()>a.getColumns());
+    int majorLength = (splitAlongRow) ? a.getRows() : a.getColumns();
+    int remainder = majorLength % nodeCount;
+    int packetSize = (majorLength - remainder) / nodeCount;
+
+    int borderSizeV = b.getRows()/2;
+    int borderSizeH = b.getColumns()/2;
+
+
+    spdlog::info("Sending packets to {} nodes and calculating {} packets locally", nodeCount, remainder);
+    if(splitAlongRow){
+        if(remainder>0){
+            Matrix<T> localResult = a.getSubmatrix(0,0,remainder+borderSizeV-1,a.getColumns()-1).convolve(b,EdgeHandling::Crop);
+            storedPartialResults.at(uid).putSubmatrix(0,0,localResult);
+        }
+
+        int counter = 0;
+        for(int i=remainder+borderSizeV;i<a.getRows()-borderSizeV;i+=packetSize){
+            node->sendMatrixConvolutionTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i-borderSizeV,0,i+packetSize-1+borderSizeV,a.getColumns()-1),b,uid,i,0);
+            Block block(&peers[counter%nodeCount],i,i+packetSize-1,0,a.getColumns()-1);
+            pendingBlocks[uid].push_back(block);
+            spdlog::info("Sent packet ({},{}) to node {}",i,0,peers[counter%nodeCount].getAddress());
+            counter++;
+        }
+    }
+    else{
+         if(remainder>0){
+            Matrix<T> localResult = a.getSubmatrix(0,0,a.getRows()-1,remainder+borderSizeH-1).convolve(b,EdgeHandling::Crop);
+            storedPartialResults.at(uid).putSubmatrix(0,0,localResult);
+        }
+
+        int counter = 0;
+        for(int i=remainder+borderSizeH;i<a.getRows()-borderSizeH;i+=packetSize){
+            node->sendMatrixConvolutionTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(0,i-borderSizeH,a.getRows()-1,i+packetSize-1+borderSizeH),b,uid,0,i);
+            Block block(&peers[counter%nodeCount],0,a.getRows()-1,i,i+packetSize-1);
+            pendingBlocks[uid].push_back(block);
+            spdlog::info("Sent packet ({},{}) to node {}",0,i,peers[counter%nodeCount].getAddress());
+            counter++;
+        }
+    }
 }
 
 template<typename T>
@@ -444,15 +521,9 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
     }
 }
 
-
-template<typename T>
-std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b){
-    //LATER BOIIS
-}
-
 template<typename T>
 Matrix<T> Distributor<T>::get(std::string id){
-    cout << "[get] Waiting on lock" << endl;
+    spdlog::info("Waiting on release lock for UID={}",id);
     std::unique_lock<std::mutex> lock(locks[id]);
     cvs[id].wait(lock,[this,id]{
         if(pendingBlocks.find(id)!=pendingBlocks.end())
@@ -460,7 +531,7 @@ Matrix<T> Distributor<T>::get(std::string id){
         else return false;
     });
 
-    cout << "[get] Obtaining result" << endl;
+    spdlog::info("Getting result");
     Matrix<T> result = storedPartialResults.at(id);
 
     //Cleanup operations...
@@ -470,6 +541,7 @@ Matrix<T> Distributor<T>::get(std::string id){
 
 template<typename T>
 void Distributor<T>::waitOn(std::string id){
+    spdlog::info("Waiting on release lock for UID={}",id);
     std::unique_lock<std::mutex> lock(locks[id]);
     cvs[id].wait(lock,[this,id]{
         if(pendingBlocks.find(id)!=pendingBlocks.end())
@@ -491,24 +563,24 @@ void Distributor<T>::configure(Parameter p, int value){
 template<typename T>
 coap_response_t Distributor<T>::handleResponse(coap_session_t *session, const coap_pdu_t *sent, const coap_pdu_t *received, coap_mid_t id){
     Message m(session,received);
-
-    std::string purpose = m.getHeaders()[Headers::PURPOSE];
-    cout << "[receive] Received message with "+purpose+" purpose" << endl;
-
-    if(purpose==PURPOSE_ASSISTANCE){
-        handleAssistanceResponse(m);
-    }
-    else if(purpose==PURPOSE_HARDWARE){
-        handleHardwareResponse(m);
-    }
-    else if(purpose==PURPOSE_RESULT){
-        handleResultResponse(m);
-    }
-    else if(purpose==PURPOSE_ASSISTANCE){
-        handleHealthResponse(m);
-    }
-    else{
-        cout << "Unsupported message received. Skipping" << endl;
+    if(m.getHeaders().find(Headers::PURPOSE)!=m.getHeaders().end()){
+        std::string purpose = m.getHeaders()[Headers::PURPOSE];
+        //spdlog::info("Received message with {} purpose",purpose);
+        if(purpose==PURPOSE_ASSISTANCE){
+            handleAssistanceResponse(m);
+        }
+        else if(purpose==PURPOSE_HARDWARE){
+            handleHardwareResponse(m);
+        }
+        else if(purpose==PURPOSE_RESULT){
+            handleResultResponse(m);
+        }
+        else if(purpose==PURPOSE_HEALTH){
+            handleHealthResponse(m);
+        }
+        else{
+            //spdlog::warn("Unrecognized purpose {}. Skipping handling...",purpose);
+        }
     }
 
     return COAP_RESPONSE_OK;
@@ -520,22 +592,22 @@ void Distributor<T>::handleResultResponse(Message m){
     std::string uid = m.getHeaders()[Headers::CALCULATION_ID];
     std::string object = m.getHeaders()[Headers::SERIALIZED_TYPE];
 
-    cout << "[handle-result] waiting on lock for uid="+uid << endl;
+    spdlog::info("Waiting ownership of lock for UID={}",uid);
     std::unique_lock<std::mutex> lock(locks[uid]);
 
     if(object==SERIALIZED_TYPE_MATRIX){
         Matrix<T> result = Serializer::unserializeMatrix<T>(m.getContent());
 
-        cout << "[handle-result] Extracted submatrix: "<< endl;
+        spdlog::info("Extracted submatrix:");
         result.show();
-        cout << "[handle-result] Inserting..." << endl;
+        spdlog::info("Inserting...");
         if(storedPartialResults.find(uid)!=storedPartialResults.end()){
             storedPartialResults.at(uid).putSubmatrix(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]), result);
 
             Block block(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]));
             std::vector<Block>::iterator it = std::find(pendingBlocks[uid].begin(),pendingBlocks[uid].end(),block);
             if(it!=pendingBlocks[uid].end()){
-                cout << "[handle-result] Removing result from pending" << endl;
+                spdlog::info("Removing result from pending");
                 pendingBlocks.at(uid).erase(it);
             }
         }
@@ -556,23 +628,23 @@ void Distributor<T>::handleResultResponse(Message m){
             return;
         }
 
-        cout << "[handle-result] Extracted element="+to_string(element)+". Inserting.." << endl;
+        spdlog::info("Extracted element {}. Inserting...",element);
         if(storedPartialResults.find(uid)!=storedPartialResults.end()){
             storedPartialResults.at(uid).put(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]),element);
             Block block(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]),std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]));
 
             std::vector<Block>::iterator it = std::find(pendingBlocks[uid].begin(),pendingBlocks[uid].end(),block);
             if(it!=pendingBlocks[uid].end()){
-                cout << "[handle-result] Removing result from pending" << endl;
+                spdlog::info("Removing result from pending");
                 pendingBlocks.at(uid).erase(it);
-                cout << "[handle-result] "+std::to_string(pendingBlocks.at(uid).size())+" remaining to receive..." <<endl;
+                spdlog::info("{} blocks remaining to receive...",pendingBlocks.at(uid).size());
             }
         }
     }
 
-    cout << "[handle-result] unlocking for uid="+uid << endl;
+    spdlog::info("Releasing ownership of lock for UID={}",uid);
     lock.unlock();
-    cout << "[handle-result] Notfiying waiting threads" << endl;
+    spdlog::info("Notifying waiting threads");
     cvs[uid].notify_all();
 }
 
@@ -580,7 +652,7 @@ template<typename T>
 void Distributor<T>::handleAssistanceResponse(Message m){
     std::string address = m.getPeer();
 
-    cout << "[handle-assistance] Waiting on lock" << endl;
+    spdlog::info("Waiting for ownerhip of peer lock");
     std::unique_lock<std::mutex> lock(addressLock);
     Peer p;
     p.setAddress(address);
@@ -588,9 +660,9 @@ void Distributor<T>::handleAssistanceResponse(Message m){
         peers.push_back(p);
     }
 
-    cout << "[handle-assistance] Unlocking" << endl;
+    spdlog::info("Releasing ownership of peer lock");
     lock.unlock();
-    cout << "[handle-assistance] Notifying waiting threads" << endl;
+    spdlog::info("Notifying waiting threads");
     addressCv.notify_all();
 }
 
@@ -598,8 +670,7 @@ template<typename T>
 void Distributor<T>::handleHardwareResponse(Message m){
     std::string address = m.getPeer();
     Hardware hw(m.getContent());
-    cout << "[handle-hardware] received specifications:" << endl;
-    cout << hw.toString() << std::endl;
+    spdlog::info("Received hardware specification {}",hw.toString());
     std::chrono::steady_clock::duration delay = std::chrono::steady_clock::now() - lastHardwareCheck;
 
     Peer peer(hw,address,delay);

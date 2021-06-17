@@ -26,7 +26,8 @@ class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
         template<typename T>
         void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId);
         template<typename T>
-        void sendMatrixConvolutionTask(string target, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize);
+        void sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int insertAtX, int insertAtY);
+
         void sendHardwareSpecification(string uri);
         void sendAskingHardwareSpecification(string uri);
         void checkLiveness(string target);
@@ -236,8 +237,30 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
 
 
 template<typename T>
-void HiveEntropyNode::sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int borderSize){
-    //LATER, BE PATIENT ;p
+void HiveEntropyNode::sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int insertAtX, int insertAtY){
+    Message m;
+
+    if(uri.find("coap://")==std::string::npos)
+        uri = "coap://"+uri;
+    if(uri.find_last_of("/")!=uri.size()-1)
+        uri +="/";
+
+    m.setDest(uri+"task/convolution");
+    m.setHttpMethod(HttpMethod::POST);
+    m.setType(MessageType::CONFIRMABLE);
+
+    std::vector<Matrix<T>> matrices;
+    matrices.push_back(a);
+    matrices.push_back(b);
+    m.setContent(Serializer::serialize(matrices));
+
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRICES);
+    m.addHeader(Headers::CALCULATION_ID,calculationId);
+    m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(insertAtX));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertAtY));
+
+    send(m);
 }
 
 #endif
