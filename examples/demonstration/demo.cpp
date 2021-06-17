@@ -9,54 +9,12 @@ using namespace std;
 #define BLUE 0
 #define GREEN 30
 #define RED 150
-#define WIDTH 1000
-#define HEIGHT 1000
+#define WIDTH 200
+#define HEIGHT 200
 #define H_LIMIT 30
 #define L_LIMIT 30
 #define NEIBOR_WIDTH 3
 #define PORTNAME "/dev/ttyACM0"
-
-
-/**
- * \fn cv::Mat gaussianFilter(cv::Mat image)
- * \brief Réalise la convolution d'une image par un filtre gaussien
- *
- * \param[in] image Image en niveau de gris à convoluer
- * \return Image après convolution
- */
-cv::Mat gaussianFilter(cv::Mat image){
-
-    int rows = image.rows;
-    int cols = image.cols;
-
-    int sum;
-
-    int gauss_mask[3][3] = {{-1,-1,-1},{-1,8,-1},{-1,-1,-1}} ;
-    int coeffMask = 0;
-
-    cv::Mat result(rows, cols, CV_32F);
-
-    for(int i = 1; i < rows-1 ; i++){
-        for(int j = 1; j < cols-1 ; j++){
-
-            sum = 0;
-            sum = gauss_mask[0][0]*image.at<float>(i-1, j-1)
-                + gauss_mask[0][1]*image.at<float>(i-1, j)
-                + gauss_mask[0][2]*image.at<float>(i-1, j+1)
-                + gauss_mask[1][0]*image.at<float>(i, j-1)
-                + gauss_mask[1][1]*image.at<float>(i, j)
-                + gauss_mask[1][2]*image.at<float>(i, j+1)
-                + gauss_mask[2][0]*image.at<float>(i+1, j-1)
-                + gauss_mask[2][1]*image.at<float>(i+1, j)
-                + gauss_mask[2][2]*image.at<float>(i+1, j+1);
-
-            result.at<float>(i, j) = sum;
-        }
-    }
-
-    return result;
-
-}
 
 int main() {
     /*float maskTab[] = {-1, -1, -1,
@@ -67,9 +25,14 @@ int main() {
                        0, -1, 0};*/
 //    Matrix<float> mask(3, 3, maskTab);
 
-    short maskTab[] = {1, 2, 1,
+    /*short maskTab[] = {1, 2, 1,
                        2, 4, 2,
-                       1, 2, 1};
+                       1, 2, 1};*/
+    short maskTab[] = {01, 04, 06, 04, 01,
+                       04, 16, 24, 16, 04,
+                       06, 24, 36, 24, 06,
+                       04, 16, 24, 16, 04,
+                       01, 04, 06, 04, 01,};
     /*short maskTab[] = {0, 0, 0,
                        0, 1, 0,
                        0, 0, 0};*/
@@ -85,7 +48,8 @@ int main() {
         return 1;
     }
 
-    cv::namedWindow("Webcam");
+    cv::namedWindow("Convolution");
+    cv::namedWindow("Base image");
     cv::Mat frame, grey;
 
     while (1) {
@@ -95,22 +59,21 @@ int main() {
         // Convert the image to grayscale
         cvtColor(frame, grey, cv::COLOR_BGR2GRAY);
 
-
         // Convert the image to unsigned char
         grey.convertTo(grey, CV_8UC1);
 
         // Convert the image to an HiveEntropy matrix
         Matrix<uchar> heMatrix(grey.rows, grey.cols, grey.data);
 
-        heMatrix = heMatrix.convolve(mask, EdgeHandling::Crop);
+        heMatrix = heMatrix.convolve(mask, EdgeHandling::Crop, 2, ImagePostProcess::Normalize);
 
         cv::Mat output(heMatrix.getRows(), heMatrix.getColumns(), CV_8UC1, heMatrix.getData());
 
         // Display the image
-        cv::imshow("Webcam", output);
+        cv::imshow("Base image", grey);
+        cv::imshow("Convolution", output);
 
         if (cv::waitKey(10) >= 0){
-
         	close(fd);
             break;
         }

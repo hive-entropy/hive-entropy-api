@@ -8,6 +8,7 @@
 #include <functional>
 #include <cmath>
 #include <map>
+#include <algorithm>
 
 #include "IncompatibleDimensionsException.h"
 #include "OutOfBoundException.h"
@@ -28,6 +29,11 @@ enum EdgeHandling {
     KernelCrop
 };
 
+enum ImagePostProcess {
+    Normalize,
+    Clamp
+};
+
 template<typename T>
 class Matrix{
 
@@ -41,17 +47,17 @@ class Matrix{
         T* data;
 
         template<typename M>
-        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask) >> edgeHandlingMethods;
+        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) >> edgeHandlingMethods;
         template<typename M>
-        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<M> mask);
+        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
         template<typename M>
-        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<M> mask);
+        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
         template<typename M>
-        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<M> mask);
+        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
         template<typename M>
-        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<M> mask);
+        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
         template<typename M>
-        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask);
+        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
 
     public:
         Matrix(int rows, int columns, T* data);
@@ -80,7 +86,7 @@ class Matrix{
         void setData(T* data);
 
         template<typename M>
-        Matrix convolve(Matrix<M> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend);
+        Matrix convolve(Matrix<M> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend, ushort nbIteration = 1, ImagePostProcess postProcess = ImagePostProcess::Normalize);
         Matrix operator*(Matrix<T> const& other);
         Matrix operator+(Matrix<T> const& other);
         Matrix operator-(Matrix<T> const& other);
@@ -389,7 +395,7 @@ std::ostream& operator<< (std::ostream& os, Matrix<T> value) {
 
 template<typename T>
 template<typename M>
-std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask) >> Matrix<T>::edgeHandlingMethods = {
+std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) >> Matrix<T>::edgeHandlingMethods = {
         {EdgeHandling::Extend, Matrix<T>::extendConvolve<M>},
         {EdgeHandling::Wrap, Matrix<T>::wrapConvolve<M>},
         {EdgeHandling::Mirror, Matrix<T>::mirrorConvolve<M>},
@@ -399,7 +405,7 @@ std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mas
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask) {
+Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
     static_assert(std::is_arithmetic<M>::value, "The kernel type must be an arithmetic type");
     // Compute the mask offset
     int offset = std::floor((double) mask.getRows() / 2.0);
@@ -431,26 +437,24 @@ Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask) {
         offset--;
     }
     // Convolve the matrix and return the result
-    return cropConvolve(result, mask);
+    return cropConvolve(result, mask, postProcess);
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<M> mask) {
+Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
     throw "Not implemented yet!";
-    return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask) {
+Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
     throw "Not implemented yet!";
-    return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
+Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
 //    printf("Function cropConvolve\n");
     // Compute the mask mean
     float mean = 0;
@@ -475,11 +479,13 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
             accumulator = 0;
 
             // For each pixel in the mask
-            for (int maskRow = -offset; maskRow < mask.getRows() - offset; ++maskRow) {
-                for (int maskCol = -offset; maskCol < mask.getColumns() - offset; ++maskCol) {
+            for (int maskRow = 0; maskRow < mask.getRows(); ++maskRow) {
+                for (int maskCol = 0; maskCol < mask.getColumns(); ++maskCol) {
                     T matrixValue = matrix[row + offset + maskRow][col + offset + maskCol];
-                    T maskValue = mask[maskRow][maskCol];
+                    M maskValue = mask[maskRow][maskCol];
+//                    printf("accumulator + (matrixValue * maskValue) = %d + (%d * %f) =", accumulator, matrixValue, maskValue);
                     accumulator += (matrixValue * maskValue);
+//                    printf("%d\n", accumulator);
                 }
             }
 
@@ -491,13 +497,30 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
 //            printf("Mean : %f, Accumulator : %d, Temp : %f, Min Value: %d, Max value : %d\n", mean, accumulator, temp, minValue, maxValue);
         }
     }
+//    printf("Min Value: %d, Max value : %d\n", minValue, maxValue);
 
-    if (maxValue != 0) {
+    // Clamp values to 0-255
+    if (postProcess == ImagePostProcess::Clamp){
+        for (int row = 0; row < interMatrix.getRows(); ++row)
+        {
+            for (int col = 0; col < interMatrix.getColumns(); ++col)
+            {
+//            printf("interMatrix[%d][%d] = ", interMatrix[row][col]);
+                interMatrix[row][col] = std::clamp(interMatrix[row][col], 0, 255);
+//                interMatrix[row][col] = interMatrix[row][col] < 255/2 ? 0 : 255;
+//            printf("%d\n", interMatrix[row][col]);
+            }
+        }
+    }
+
+    // Normalise values to 0-255
+    if (postProcess == ImagePostProcess::Normalize) {
         for (int row = 0; row < interMatrix.getRows(); ++row)
         {
             for (int col = 0; col < interMatrix.getColumns(); ++col)
             {
 //                printf("interMatrix[%d][%d] = (%d - %d / %d) * 255 =", row, col, interMatrix[row][col], minValue, maxValue);
+                if (maxValue == 0) maxValue = 1;
                 interMatrix[row][col] = (int) (((float) (interMatrix[row][col] - minValue) / (float) maxValue) * 255);
 //                printf("%d\n", interMatrix[row][col]);
             }
@@ -511,16 +534,18 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask) {
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask) {
+Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
     throw "Not implemented yet!";
-    return Matrix<T>(0, 0, nullptr);
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling edgeHandler) {
-    // TODO: Throw an exception if the mask is not a odd square
-    return edgeHandlingMethods<M>[edgeHandler](*this, mask);
+Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling edgeHandler, ushort nbIteration, ImagePostProcess postProcess) {
+    Matrix convolution = edgeHandlingMethods<M>[edgeHandler](*this, mask, postProcess);
+    for (int i = 1; i < nbIteration; ++i) {
+        convolution = edgeHandlingMethods<M>[edgeHandler](convolution, mask, postProcess);
+    }
+    return convolution;
 }
 
 #endif
