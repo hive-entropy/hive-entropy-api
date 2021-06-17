@@ -295,7 +295,9 @@ void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Ma
     spdlog::info("Sending packets to {} nodes and calculating {} packets locally", nodeCount, remainder);
     if(splitAlongRow){
         if(remainder>0){
-            Matrix<T> localResult = a.getSubmatrix(0,0,remainder+borderSizeV-1,a.getColumns()-1).convolve(b,EdgeHandling::Crop);
+            Matrix<T> localResult = a.getSubmatrix(0, 0, remainder + borderSizeV - 1, a.getColumns() - 1).convolve(b,
+                                                                                                                   EdgeHandling::Crop,
+                                                                                                                   1);
             storedPartialResults.at(uid).putSubmatrix(0,0,localResult);
         }
 
@@ -310,7 +312,9 @@ void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Ma
     }
     else{
          if(remainder>0){
-            Matrix<T> localResult = a.getSubmatrix(0,0,a.getRows()-1,remainder+borderSizeH-1).convolve(b,EdgeHandling::Crop);
+            Matrix<T> localResult = a.getSubmatrix(0, 0, a.getRows() - 1, remainder + borderSizeH - 1).convolve(b,
+                                                                                                                EdgeHandling::Crop,
+                                                                                                                1);
             storedPartialResults.at(uid).putSubmatrix(0,0,localResult);
         }
 

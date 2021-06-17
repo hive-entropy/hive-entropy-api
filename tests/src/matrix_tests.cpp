@@ -533,7 +533,7 @@ SCENARIO("We should be able to convolve matrices") {
             }
         }
         WHEN("We convolve the matrix with the mask and use crop edge handling") {
-            Matrix<int> result = matrix.convolve(mask, EdgeHandling::Crop);
+            Matrix<int> result = matrix.convolve(mask, EdgeHandling::Crop, 1);
 
             THEN("The result matrix should be smaller but equal to the original") {
                 REQUIRE(result.getRows() < matrix.getRows());
