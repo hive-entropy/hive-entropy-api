@@ -7,27 +7,27 @@
 #include <random>
 #include <time.h>
 
-#define _COTE 10
+#define _COTE 800
 
 TEST_CASE("Benchmarking"){
 
     srand((unsigned) time(NULL));
 
-    Matrix<float> a(_COTE,_COTE);
+    Matrix<unsigned short> a(_COTE,_COTE);
 
     for(int i=0; i< _COTE; i++){
         for(int j=0; j<_COTE; j++){
-            a.put(i,j,(float) rand()/(float)(RAND_MAX/255));
+            a.put(i,j,(unsigned short) rand());
         }
     }
 
-    float b_tab[] = {1.0f,2.0f,1.0f,2.0f,4.0f,2.0f,1.0f,2.0f,1.0f};
-    Matrix<float> blur(3,3,b_tab);
+    unsigned short b_tab[] = {1,2,1,2,4,2,1,2,1};
+    Matrix<unsigned short> blur(3,3,b_tab);
 
     HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
-    Distributor<float> dist(n);
+    Distributor<unsigned short> dist(n);
+    dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
     BENCHMARK("Distributed RowColumn"){
-        dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
         std::string id = dist.distributeMatrixConvolution(a,blur);
         return dist.get(id);
     };

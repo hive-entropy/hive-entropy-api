@@ -67,13 +67,13 @@ int main() {
                        0, -1, 0};*/
 //    Matrix<float> mask(3, 3, maskTab);
 
-    short maskTab[] = {1, 2, 1,
+    unsigned short maskTab[] = {1, 2, 1,
                        2, 4, 2,
                        1, 2, 1};
     /*short maskTab[] = {0, 0, 0,
                        0, 1, 0,
                        0, 0, 0};*/
-    Matrix<short> mask(3, 3, maskTab);
+    Matrix<unsigned short> mask(3, 3, maskTab);
 
     cv::VideoCapture camera(0, cv::CAP_V4L2);
     camera.set(3, WIDTH);
@@ -88,6 +88,9 @@ int main() {
     cv::namedWindow("Webcam");
     cv::Mat frame, grey;
 
+    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
+    Distributor<unsigned short> dist(n);
+
     while (1) {
         // Get camera image
         camera >> frame;
@@ -100,12 +103,12 @@ int main() {
         grey.convertTo(grey, CV_8UC1);
 
         // Convert the image to an HiveEntropy matrix
-        Matrix<uchar> heMatrix(grey.rows, grey.cols, grey.data);
+        Matrix<unsigned short> heMatrix(grey.rows, grey.cols, grey.data);
 
-        heMatrix = heMatrix.convolve(mask, EdgeHandling::Crop);
+        std::string uid = dist.distributeMatrixConvolution(heMatrix,mask);
 
-        cv::Mat output(heMatrix.getRows(), heMatrix.getColumns(), CV_8UC1, heMatrix.getData());
-
+        Matrix<unsigned short> convolved = dist.get(uid);
+        cv::Mat output(convolved.getRows(), convolved.getColumns(), CV_8UC1, convolved.getData());
         // Display the image
         cv::imshow("Webcam", output);
 
