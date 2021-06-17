@@ -201,7 +201,7 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
 
     //Dimensions parsing
     uint16_t dimensions[2];
-    memcpy(&dimensions,content,2*sizeof(uint16_t));
+    memcpy(dimensions,content,2*sizeof(uint16_t));
     int rows = dimensions[0];
     int cols = dimensions[1];
 
