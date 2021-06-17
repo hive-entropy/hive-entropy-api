@@ -96,6 +96,7 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
         memcpy(&dimensions,content,2*sizeof(uint16_t));
         int rows = dimensions[0];
         int cols = dimensions[1];
+        spdlog::debug("Found matrix of dimensions {}x{} to unserialize",rows,cols);
 
         list.push_back(unserializeMatrix<T>(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t))));
         length -= sizeof(T)*rows*cols+2*sizeof(uint16_t);
@@ -203,8 +204,10 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
     int rows = dimensions[0];
     int cols = dimensions[1];
 
-    if(coded.length()-2*sizeof(uint16_t)!=rows*cols*sizeof(T))
+    if(coded.length()-2*sizeof(uint16_t)!=rows*cols*sizeof(T)){
+        spdlog::error("The serialized size doesn't correspond to the dimensions (received {}, needed {}x{}={})",coded.length()-2*sizeof(uint16_t),rows,cols,rows*cols*sizeof(T));
         throw "The body of the serialized matrix must be equal to its dimensions mutliplied together ("+std::to_string(rows)+"x"+std::to_string(cols)+")";
+    }
 
     Matrix<T> deserialized(rows,cols);
     content = content+2*sizeof(uint16_t);
