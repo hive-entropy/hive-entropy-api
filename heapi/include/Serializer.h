@@ -83,7 +83,7 @@ template<typename T>
 std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::string encoding){
     std::vector<Matrix<T>> list = std::vector<Matrix<T>>();
 
-    if(coded.length()<2)
+    if(coded.length()<2*sizeof(uint16_t))
         throw "The serialized list should at least contain one element";
 
     char* content = (char*) malloc(coded.length());
@@ -92,12 +92,14 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
     int length = coded.length();
 
     while(length>0){
-        int rows = static_cast<uint8_t>(content[0]);
-        int cols = static_cast<uint8_t>(content[1]);
+        uint16_t dimensions[2];
+        memcpy(&dimensions,content,2*sizeof(uint16_t));
+        int rows = dimensions[0];
+        int cols = dimensions[1];
 
-        list.push_back(unserializeMatrix<T>(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2)));
-        length -= sizeof(T)*rows*cols+2;
-        content += sizeof(T)*rows*cols+2;
+        list.push_back(unserializeMatrix<T>(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t))));
+        length -= sizeof(T)*rows*cols+2*sizeof(uint16_t);
+        content += sizeof(T)*rows*cols+2*sizeof(uint16_t);
     }
 
     return list;
@@ -189,21 +191,23 @@ std::pair<Row<T>,Column<T>> Serializer::unserializeRowColumn(std::string coded, 
 
 template<typename T>
 Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding){
-    if(coded.length()<2)
+    if(coded.length()<2*sizeof(uint16_t))
         throw "The serialized object should at least contain the dimensions";
 
     char* content = (char*) malloc(coded.length());
     memcpy(content,coded.c_str(),coded.length());
 
     //Dimensions parsing
-    int rows = static_cast<uint8_t>(content[0]);
-    int cols = static_cast<uint8_t>(content[1]);
+    uint16_t dimensions[2];
+    memcpy(&dimensions,content,2*sizeof(uint16_t));
+    int rows = dimensions[0];
+    int cols = dimensions[1];
 
-    if(coded.length()-2!=rows*cols*sizeof(T))
+    if(coded.length()-2*sizeof(uint16_t)!=rows*cols*sizeof(T))
         throw "The body of the serialized matrix must be equal to its dimensions mutliplied together ("+std::to_string(rows)+"x"+std::to_string(cols)+")";
 
     Matrix<T> deserialized(rows,cols);
-    content = content+2;
+    content = content+2*sizeof(uint16_t);
     T* t_content = reinterpret_cast<T*>(content);
 
     //Body parsing
@@ -219,11 +223,11 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
 
 template<typename T>
 std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
-    char* dims = (char*) malloc(2);
-    uint8_t int_dims[] = {(uint8_t) mat.getRows(), (uint8_t) mat.getColumns()};
+    char* dims = (char*) malloc(2*sizeof(uint16_t));
+    uint16_t int_dims[] = {(uint16_t) mat.getRows(), (uint16_t) mat.getColumns()};
     dims = reinterpret_cast<char*>(int_dims);
 
-    if(!std::is_same<T,int>::value&&!std::is_same<T,float>::value&&!std::is_same<T,double>::value)
+    if(!std::is_same<T,int>::value&&!std::is_same<T,float>::value&&!std::is_same<T,double>::value&&!std::is_same<T,unsigned short>::value)
         throw "Matrix serialization doesn't support matrices of "+std::string(typeid(T).name());
 
     T* t_body = (T*) malloc(mat.getColumns()*mat.getRows()*sizeof(T));
@@ -233,7 +237,7 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
             *(t_body+i*mat.getColumns()+j) = mat.get(i,j);
     body = reinterpret_cast<char*>(t_body);
 
-    std::string ser_dims(dims,2);
+    std::string ser_dims(dims,2*sizeof(uint16_t));
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
     return ser_dims+serialized;
 }
