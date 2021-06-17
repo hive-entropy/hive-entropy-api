@@ -119,10 +119,6 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     configure(Parameter::FRESHNESS,10);
     spdlog::set_level(spdlog::level::info);
     spdlog::set_pattern("[%H:%M:%S.%e] [%!] (%l) %v");
-
-    // Hardware hw;
-    // Peer p(hw,"192.168.1.35:9999",std::chrono::seconds(0));
-    // peers.push_back(p);
 }
 
 template<typename T>
