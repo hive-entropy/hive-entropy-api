@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string.h>
+#include <spdlog/spdlog.h>
 
 #include "Matrix.h"
 #include "Column.h"
