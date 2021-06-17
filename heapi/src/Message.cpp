@@ -310,6 +310,27 @@ std::string Message::getPeer(){
 
 void Message::fillResponse(coap_resource_t* resource, coap_session_t* sess, const coap_pdu_t* request, coap_pdu_t* response){
 
+    coap_pdu_type_t messageType;
+
+    switch (type){
+        case MessageType::CONFIRMABLE:
+            messageType = COAP_MESSAGE_CON;
+        break;
+        case MessageType::NON_CONFIRMABLE:
+            messageType = COAP_MESSAGE_NON;
+        break;
+        case MessageType::ACK:
+            messageType = COAP_MESSAGE_ACK;
+        break;
+        case MessageType::RESET:
+            messageType = COAP_MESSAGE_RST;
+        break;
+        default:
+            messageType = COAP_MESSAGE_ACK;
+    }
+
+    coap_pdu_set_type(response,messageType);
+
     coap_pdu_code_t coapMethod;
 
     switch (httpMethod){
