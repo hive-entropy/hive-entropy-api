@@ -229,7 +229,7 @@ template<typename T>
 std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
     char* dims = (char*) malloc(2*sizeof(uint16_t));
     uint16_t int_dims[] = {(uint16_t) mat.getRows(), (uint16_t) mat.getColumns()};
-    dims = reinterpret_cast<char*>(int_dims);
+    memcpy(dims,int_dims,2*sizeof(uint16_t));
 
     if(!std::is_same<T,int>::value&&!std::is_same<T,float>::value&&!std::is_same<T,double>::value&&!std::is_same<T,unsigned short>::value)
         throw "Matrix serialization doesn't support matrices of "+std::string(typeid(T).name());
