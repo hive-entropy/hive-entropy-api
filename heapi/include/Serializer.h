@@ -95,7 +95,7 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
 
     while(length>0){
         uint16_t dimensions[2];
-        memcpy(&dimensions,content,2*sizeof(uint16_t));
+        memcpy(dimensions,coded.c_str(),2*sizeof(uint16_t));
         int rows = dimensions[0];
         int cols = dimensions[1];
         spdlog::debug("Found matrix of dimensions {}x{} to unserialize",rows,cols);
