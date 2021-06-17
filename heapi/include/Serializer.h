@@ -206,6 +206,7 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
     int cols = dimensions[1];
 
     if(coded.length()-2*sizeof(uint16_t)!=rows*cols*sizeof(T)){
+        cout << coded << endl;
         spdlog::error("The serialized size doesn't correspond to the dimensions (received {}, needed {}x{}={})",coded.length()-2*sizeof(uint16_t),rows,cols,rows*cols*sizeof(T));
         throw "The body of the serialized matrix must be equal to its dimensions mutliplied together ("+std::to_string(rows)+"x"+std::to_string(cols)+")";
     }
