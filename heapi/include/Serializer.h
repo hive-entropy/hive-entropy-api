@@ -100,7 +100,9 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
         int cols = (int) dimensions[1];
         spdlog::debug("Found matrix of dimensions {}x{} to unserialize",rows,cols);
 
-        list.push_back(unserializeMatrix<T>(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t))));
+        std::string current_substring(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t)));
+        cout << current_substring << endl;
+        list.push_back(unserializeMatrix<T>(current_substring));
         length -= sizeof(T)*rows*cols+2*sizeof(uint16_t);
         content += sizeof(T)*rows*cols+2*sizeof(uint16_t);
     }
