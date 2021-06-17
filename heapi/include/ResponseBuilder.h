@@ -78,19 +78,8 @@ class ResponseBuilder{
         template<typename T>
         static Message matrixMultiplicationResultFragmentMessage(string calculationId, int insertX, int insertY, Matrix<T> m);
 
-        /**
-         * @brief Creates a message that gives a result matrix matrix fragment back to the querying node after a convolution.
-         * 
-         * @tparam T the type of the matrix's elements.
-         * @param calculationId  the unique identifier for the calculation.
-         * @param taskId the unique identifier for the task.
-         * @param startRow the first row where the matrix fragment should start to be inserted.
-         * @param endColumn the first column where the matrix fragment should start to be inserted.
-         * @param fragment the matrix fragment to insert in the final result.
-         * @return Message the generated message.
-         */
         template<typename T>
-        static Message matrixConvolutionResultFragmentMessage(string calculationId, string taskId, int startRow, int endColumn, Matrix<T> fragment);
+        static Message matrixConvolutionResultFragmentMessage(string calculationId, int insertX, int insertY, Matrix<T> fragment);
 };
 
 template<typename T>
@@ -152,8 +141,22 @@ Message ResponseBuilder::matrixMultiplicationResultFragmentMessage(string calcul
 }
 
 template<typename T>
-Message ResponseBuilder::matrixConvolutionResultFragmentMessage(string calculationId, string taskId, int startRow, int endColumn, Matrix<T> fragment){
-    //Patience, you fool
+Message ResponseBuilder::matrixConvolutionResultFragmentMessage(string calculationId, int insertX, int insertY, Matrix<T> fragment){
+    Message m;
+
+    m.setType(MessageType::CONFIRMABLE);
+    m.setHttpMethod(HttpMethod::OK);
+
+    m.setContent(Serializer::serialize(fragment));
+
+    m.addHeader(Headers::CALCULATION_ID,calculationId);
+    m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRIX);
+    m.addHeader(Headers::PURPOSE,PURPOSE_RESULT);
+    m.addHeader(Headers::ELEMENT_TYPE,typeid(T).name());
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(insertX));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertY));
+
+    return m;
 }
 
 #endif
