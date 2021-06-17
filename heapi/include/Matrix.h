@@ -44,7 +44,7 @@ class Matrix{
         int columns;
         int elements;
         int type;
-        T* data;
+        std::vector<T> data;
 
         template<typename M>
         static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) >> edgeHandlingMethods;
@@ -60,10 +60,11 @@ class Matrix{
         static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
 
     public:
-        Matrix(int rows, int columns, T* data);
+        template<typename M>
+        Matrix(int rows, int columns, M* data);
         Matrix(int rows, int columns, char archetype=MatrixArchetype::ZEROS);
         template<typename M>
-        Matrix(const Matrix<M>& m);
+        explicit Matrix(Matrix<M>& m);
         ~Matrix();
 
         void putColumn(int j, T* elems);
@@ -77,7 +78,7 @@ class Matrix{
         T* getRow(int i);
         T* getColumn(int j);
 
-        T* getData() const;
+        T* getData();
         int getRows() const;
         int getColumns() const;
         int getType() const;
@@ -95,7 +96,7 @@ class Matrix{
         Matrix& operator-=(Matrix<T> const& other);
         bool operator==(Matrix<T> const& other) const;
         bool operator!=(Matrix<T> const& other) const;
-        T* operator[](int const& index) const;
+        T* operator[](int const& index);
 
         void show();
         std::string toString();
@@ -103,22 +104,24 @@ class Matrix{
 
 template<typename T>
 Matrix<T>::~Matrix(){
-    //free(data);
 }
 
 template<typename T>
-Matrix<T>::Matrix(int rows, int columns, T* data) : rows(rows), columns(columns){
+template<typename M>
+Matrix<T>::Matrix(int rows, int columns, M* data) : rows(rows), columns(columns){
+    static_assert(std::is_arithmetic<M>::value, "The Matrix type must be an arithmetic type");
     elements = rows*columns;
-    this->data = (T*) malloc(rows*columns*sizeof(T));
+    // Copy the input data to the intern data vector
+    this->data.resize(elements);
     for(int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
-            this->data[columns*i+j] = data[columns*i+j];
+            this->data[columns*i+j] = static_cast<T>(data[columns*i+j]);
 }
 
 template<typename T>
 Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(columns){
     elements = rows*columns;
-    data = (T*) malloc(rows*columns*sizeof(T));
+    this->data.resize(elements);
     switch(archetype){
         case MatrixArchetype::ZEROS:
             for(int i=0;i<rows;i++)
@@ -140,11 +143,12 @@ Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(c
 
 template<typename T>
 template<typename M>
-Matrix<T>::Matrix(const Matrix<M>& m){
+Matrix<T>::Matrix(Matrix<M>& m){
+    static_assert(std::is_arithmetic<M>::value, "The Matrix type must be an arithmetic type");
     rows = m.getRows();
     columns = m.getColumns();
     elements = rows*columns;
-    this->data = (T*) malloc(rows*columns*sizeof(T));
+    this->data.resize(elements);
     for (int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
             data[columns*i+j] = static_cast<T>(m.getData()[m.getColumns() * i + j]);
@@ -231,8 +235,8 @@ T* Matrix<T>::getColumn(int j){
 }
 
 template<typename T>
-T* Matrix<T>::getData() const {
-    return data;
+T* Matrix<T>::getData() {
+    return data.data();
 }
 
 template<typename T>
@@ -356,8 +360,8 @@ bool Matrix<T>::operator!=(Matrix<T> const& other) const{
 }
 
 template<typename T>
-T *Matrix<T>::operator[](const int &index) const {
-    return &data[index * columns];
+T* Matrix<T>::operator[](const int &index) {
+    return &data.data()[index * columns];
 }
 
 template<typename T>
