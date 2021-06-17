@@ -51,7 +51,7 @@ short maskTab[] = {01, 04, 06, 04, 01,
 
     HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
     Distributor<unsigned short> dist(n);
-
+    n->resolveNodeIdentities();
     while (1) {
         // Get camera image
         camera >> frame;

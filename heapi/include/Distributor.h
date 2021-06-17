@@ -103,7 +103,7 @@ template<typename T>
 std::condition_variable Distributor<T>::addressCv;
 
 template<typename T>
-std::chrono::steady_clock::time_point Distributor<T>::lastHardwareCheck;
+std::chrono::steady_clock::time_point Distributor<T>::lastHardwareCheck = std::chrono::steady_clock::now();
 
 template<typename T>
 std::vector<Peer> Distributor<T>::healthyNodes = std::vector<Peer>();
@@ -166,7 +166,7 @@ std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b
     splitter.detach();
     spdlog::info("Created splitter thread for UID={}", uid);
 
-    node->resolveNodeIdentities();
+    //node->resolveNodeIdentities();
     lastHardwareCheck =std::chrono::steady_clock::now();
     spdlog::info("Queried node assistance");
 
