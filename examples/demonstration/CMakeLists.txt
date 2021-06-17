@@ -11,7 +11,7 @@ include_directories(${OpenCV_INCLUDE_DIRS} "/usr/include/opencv4/opencv2" )
 
 # Add target options and features
 target_compile_options(demo PRIVATE -Wall -Wextra -Wconversion -pedantic)
-target_compile_features(demo PRIVATE cxx_std_11)
+target_compile_features(demo PRIVATE cxx_std_17)
 
 # Link the libraries
 target_link_libraries(demo

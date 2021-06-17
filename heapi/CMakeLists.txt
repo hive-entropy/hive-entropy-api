@@ -73,7 +73,7 @@ endif()
 
 # Set the compiler to use C++11
 target_compile_features(HiveEntropyAPI
-        PRIVATE cxx_std_11
+        PRIVATE cxx_std_17
         )
 
 target_compile_options(HiveEntropyAPI
