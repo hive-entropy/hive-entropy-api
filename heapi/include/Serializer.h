@@ -96,22 +96,22 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
     char* content = (char*) malloc(coded.length());
     memcpy(content,coded.c_str(),coded.length());
 
-    int length = coded.length();
+    int offset = 0;
 
-    while(length>0){
+    while(offset<coded.length()){
         uint16_t dimensions[2];
         memcpy(dimensions,content,2*sizeof(uint16_t));
         int rows = (int) dimensions[0];
         int cols = (int) dimensions[1];
         spdlog::debug("Found matrix of dimensions {}x{} to unserialize",rows,cols);
 
-        std::string current_substring(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t)));
+        std::string current_substring(coded.substr(offset,rows*cols*sizeof(T)+2*sizeof(uint16_t)));
 
-        printSerializedDimensionsBits(current_substring.length(),current_substring.c_str());
+        //printSerializedDimensionsBits(current_substring.length(),current_substring.c_str());
 
         list.push_back(unserializeMatrix<T>(current_substring));
-        length -= sizeof(T)*rows*cols+2*sizeof(uint16_t);
-        content += sizeof(T)*rows*cols+2*sizeof(uint16_t);
+        offset += sizeof(T)*rows*cols+2*sizeof(uint16_t);
+        content += offset;
     }
 
     return list;
