@@ -43,10 +43,8 @@ int main() {
     cv::namedWindow("Base image");
     cv::Mat frame, grey;
 
-    HiveEntropyNode n("192.168.1.38:6969");
+    HiveEntropyNode n("192.168.1.35:6969");
     Distributor<unsigned short> dist(&n);
-    n.sendAskingHardwareSpecification("192.168.1.14:9999");
-    n.resolveNodeIdentities();
 
     while (1) {
         // Get camera image
