@@ -159,7 +159,7 @@ std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b
     spdlog::info("Obtained following UID={}",uid);
 
     Matrix<T> result(a.getRows()-b.getRows()/2,a.getColumns()-b.getColumns()/2);
-    storedPartialResults[uid] = result;
+    storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid,result));
     spdlog::info("Created result for UID={}",uid);
 
     std::thread splitter(&Distributor<T>::splitMatrixConvolutionTask,this,uid,a,b);
@@ -167,7 +167,7 @@ std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b
     spdlog::info("Created splitter thread for UID={}", uid);
 
     node->resolveNodeIdentities();
-    lastHardwareCheck = std::chrono::steady_clock::now();
+    lastHardwareCheck =std::chrono::steady_clock::now();
     spdlog::info("Queried node assistance");
 
     return uid;
