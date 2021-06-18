@@ -47,7 +47,7 @@ int main() {
     HiveEntropyNode n("192.168.1.35:6969");
     Distributor<unsigned short> dist(&n);
 
-    while (1) {
+    while (true) {
         // Get camera image
         camera >> frame;
 
@@ -60,6 +60,9 @@ int main() {
         // Convert the image to an HiveEntropy matrix
         Matrix<ushort> heMatrix(grey.rows, grey.cols, grey.data);
 
+        /*Matrix<uchar> castMatrix = Matrix<uchar>(heMatrix);
+        cv::Mat output(castMatrix.getRows(), castMatrix.getColumns(), CV_8UC1, castMatrix.getData());*/
+
         // Send the matrices to be convolved
         std::string uid = dist.distributeMatrixConvolution(heMatrix, mask);
         // Wait for the result
@@ -70,14 +73,13 @@ int main() {
         cv::Mat output(convolved.getRows(), convolved.getColumns(), CV_8UC1, castMatrix.getData());
 
         // Display the image
-        //cv::imshow("Base image", grey);
-        //cv::imshow("Convolution", output);
+        cv::imshow("Base image", grey);
+        cv::imshow("Convolution", output);
 
-        if (cv::waitKey(10) >= 0){
+        if (cv::waitKey(50) >= 0){
             break;
         }
     }
-
 
     return 0;
 }

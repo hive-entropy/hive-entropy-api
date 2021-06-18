@@ -12,39 +12,40 @@
 #include "Column.h"
 #include "Serializer.h"
 
-class HiveEntropyNode /*:public HiveEntropyNodeInterface*/{
+class HiveEntropyNode {
+    private:
+        CoapEndpoint coap;
+
     public:
-        HiveEntropyNode(std::string uri);
-        ~HiveEntropyNode();
+        explicit HiveEntropyNode(std::string const &uri);
+        ~HiveEntropyNode() = default;
 
-        void send(Message m);
+        void send(Message const &m);
 
         template<typename T>
-        void sendMatrixMultiplicationTask(string target, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId);
+        void sendMatrixMultiplicationTask(std::string target, Matrix<T> const &a, Matrix<T> const &b, int const &insertX, int const &insertY, int const &steps, std::string const &taskId, std::string const &calculationId);
         template<typename T>
-        void sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, string calculationId);
+        void sendMatrixMultiplicationTask(std::string uri, Matrix<T> const &a, Matrix<T> const &b, int const &insertX, int const &insertY, std::string const &calculationId);
         template<typename T>
-        void sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId);
+        void sendMatrixMultiplicationTask(std::string uri, Row<T> const &row, Column<T> const &col, std::string const &calculationId);
         template<typename T>
-        void sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int insertAtX, int insertAtY);
+        void sendMatrixConvolutionTask(std::string uri, Matrix<T> const &a, Matrix<T> const &b, std::string const &calculationId, int const &insertAtX, int const &insertAtY);
 
-        void sendHardwareSpecification(string uri);
-        void sendAskingHardwareSpecification(string uri);
-        void checkLiveness(string target);
+        void sendHardwareSpecification(std::string uri);
+        void sendAskingHardwareSpecification(std::string uri);
+        void checkLiveliness(std::string target);
         void queryNodeAvailability();
         void resolveNodeIdentities();
 
-        void registerResponseHandler(coap_response_handler_t func);
+        void registerResponseHandler(coap_response_handler_t const &func);
 
         template<Message(*F)(Message)>
-        void registerMessageHandler(string uri, HttpMethod method);
+        void registerMessageHandler(std::string const &uri, HttpMethod const &method);
 
         template<Message(*F)(Message)>
-        void registerAsynchronousHandler(string uri, HttpMethod method);
+        void registerAsynchronousHandler(std::string const &uri, HttpMethod const &method);
 
         void keepAlive();
-    private:
-        CoapEndpoint coap;
 };
 
 static std::map<coap_mid_t,std::mutex> locks = std::map<coap_mid_t,std::mutex>();
@@ -55,7 +56,7 @@ static std::map<coap_mid_t,bool> canDie = std::map<coap_mid_t,bool>();
 //Templated methods
 
 template<Message(*F)(Message)>
-void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
+void HiveEntropyNode::registerMessageHandler(std::string const &uri, HttpMethod const &method) {
     coap_request_t coapMethod;
 
     switch (method){
@@ -80,10 +81,10 @@ void HiveEntropyNode::registerMessageHandler(string uri, HttpMethod method) {
         Message output = F(inputMessage);
         output.fillResponse(resource,session,request,response);
     });
-};
+}
 
 template<Message(*F)(Message)>
-void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method){
+void HiveEntropyNode::registerAsynchronousHandler(std::string const &uri, HttpMethod const &method){
     coap_request_t coapMethod;
 
     switch (method){
@@ -114,7 +115,7 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
             if (!async) {
                 spdlog::warn("Async state not found, creating...");
                 async = coap_register_async(session, request,0);
-                if (async == NULL) {
+                if (async == nullptr) {
                     coap_pdu_set_code(response, COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE);
                     return;
                 }
@@ -166,15 +167,15 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
 }
 
 template<typename T>
-void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, int steps, string taskId, string calculationId){
+void HiveEntropyNode::sendMatrixMultiplicationTask(std::string target, Matrix<T> const &a, Matrix<T> const &b, int const &insertX, int const &insertY, int const &steps, std::string const &taskId, std::string const &calculationId){
     Message m;
 
-    if(uri.find("coap://")==std::string::npos)
-        uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
-        uri +="/";
+    if(target.find("coap://") == std::string::npos)
+        target = "coap://" + target;
+    if(target.find_last_of('/') != target.size() - 1)
+        target +="/";
 
-    m.setDest(uri+"task/multiplication/cannon");
+    m.setDest(target + "task/multiplication/cannon");
     m.setHttpMethod(HttpMethod::POST);
     m.setType(MessageType::CONFIRMABLE);
     std::vector<Matrix<T>> vec;
@@ -187,19 +188,19 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
     m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
     m.addHeader(Headers::STEPS,std::to_string(steps));
     m.addHeader(Headers::TASK_ID,taskId);
-    m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
-    m.addHeader(Headers::INSERT_AT_Y,to_string(insertY));
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(insertX));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertY));
 
     send(m);
 }
 
 template<typename T>
-void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matrix<T> b, int insertX, int insertY, string calculationId){
+void HiveEntropyNode::sendMatrixMultiplicationTask(std::string uri, Matrix<T> const &a, Matrix<T> const &b, int const &insertX, int const &insertY, std::string const &calculationId){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
         uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
+    if(uri.find_last_of('/')!=uri.size()-1)
         uri +="/";
 
     m.setDest(uri+"task/multiplication/rowcol");
@@ -213,19 +214,19 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri, Matrix<T> a, Matr
     m.addHeader(Headers::SERIALIZED_TYPE,SERIALIZED_TYPE_MATRICES);
     m.addHeader(Headers::CALCULATION_ID,calculationId);
     m.addHeader(Headers::ELEMENT_TYPE,std::string(typeid(T).name()));
-    m.addHeader(Headers::INSERT_AT_X,to_string(insertX));
-    m.addHeader(Headers::INSERT_AT_Y,to_string(insertY));
+    m.addHeader(Headers::INSERT_AT_X,std::to_string(insertX));
+    m.addHeader(Headers::INSERT_AT_Y,std::to_string(insertY));
 
     send(m);
 }
 
 template<typename T>
-void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column<T> col, string calculationId){
+void HiveEntropyNode::sendMatrixMultiplicationTask(std::string uri, Row<T> const &row, Column<T> const &col, std::string const &calculationId){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
         uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
+    if(uri.find_last_of('/')!=uri.size()-1)
         uri +="/";
 
     m.setDest(uri+"task/multiplication/rowcol");
@@ -242,15 +243,13 @@ void HiveEntropyNode::sendMatrixMultiplicationTask(string uri,Row<T> row, Column
     send(m);
 }
 
-
-
 template<typename T>
-void HiveEntropyNode::sendMatrixConvolutionTask(string uri, Matrix<T> a, Matrix<T> b, string calculationId, int insertAtX, int insertAtY){
+void HiveEntropyNode::sendMatrixConvolutionTask(std::string uri, Matrix<T> const &a, Matrix<T> const &b, std::string const &calculationId, int const &insertAtX, int const &insertAtY){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
         uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
+    if(uri.find_last_of('/')!=uri.size()-1)
         uri +="/";
 
     m.setDest(uri+"task/convolution");

@@ -7,25 +7,28 @@
 
 template<typename T>
 class Row{
-
     static_assert(std::is_arithmetic<T>::value, "The Row type must be an arithmetic type");
-
-    public:
-        Row(int size, int position, T* elems);
-        ~Row();
-        Row(const Row<T>& other);
-        T operator*(const Column<T>& col);
-        bool operator==(Row<T> const& other) const;
-        bool operator!=(Row<T> const& other) const;
-
-        T get(int j) const;
-        int getSize() const;
-        int getPosition() const;
 
     private:
         int position;
         int size;
         T* elems;
+
+    public:
+        // Constructors
+        Row(int size, int position, T* elems);
+        Row(const Row<T>& other);
+        ~Row() = default;
+
+        // Getters
+        [[nodiscard]] T get(int const &j) const;
+        [[nodiscard]] int getSize() const;
+        [[nodiscard]] int getPosition() const;
+
+        // Operators
+        T operator*(Column<T> const &col);
+        bool operator==(Row<T> const &other) const;
+        bool operator!=(Row<T> const &other) const;
 };
 
 template<typename T>
@@ -34,11 +37,6 @@ Row<T>::Row(int size, int position, T* elems) : size(size), position(position){
     for(int i=0;i<size;i++){
         this->elems[i] = elems[i];
     }
-}
-
-template<typename T>
-Row<T>::~Row(){
-
 }
 
 template<typename T>
@@ -54,7 +52,7 @@ Row<T>::Row(const Row<T>& other){
 template<typename T>
 T Row<T>::operator*(const Column<T>& col){
     if(size!=col.getSize())
-        throw "Woops";
+        throw std::length_error("The given column is not the same size as this row.");
     T sum = 0;
     for(int i=0;i<size;i++){
         sum += elems[i]*col.get(i);
@@ -63,9 +61,9 @@ T Row<T>::operator*(const Column<T>& col){
 }
 
 template<typename T>
-T Row<T>::get(int j) const {
+T Row<T>::get(int const &j) const {
     if(j>size||j<0)
-        throw "Woops";
+        throw std::out_of_range("The given index doesn't fit into the row.");
     return elems[j];
 }
 
@@ -89,7 +87,7 @@ bool Row<T>::operator==(Row<T> const& other) const{
 
 template<typename T>
 bool Row<T>::operator!=(Row<T> const& other) const{
-    return !(*this==other);
+    return *this != other;
 }
 
 #endif

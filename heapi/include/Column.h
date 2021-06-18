@@ -5,37 +5,35 @@
 
 template<typename T>
 class Column{
-
     static_assert(std::is_arithmetic<T>::value, "The Column type must be an arithmetic type");
-
-    public:
-        Column(int size, int position, T* elems);
-        ~Column();
-        Column(const Column<T>& other);
-        bool operator==(Column<T> const& other) const;
-        bool operator!=(Column<T> const& other) const;
-
-        T get(int j) const;
-        int getSize() const;
-        int getPosition() const;
 
     private:
         int position;
         int size;
-        T* elems;
+        T const *elems;
+
+    public:
+        // Constructors
+        Column(int const &size, int const &position, T const *elems);
+        Column(const Column<T>& other);
+        ~Column() = default;
+
+        // Getters
+        [[nodiscard]] T get(int const &j) const;
+        [[nodiscard]] int getSize() const;
+        [[nodiscard]] int getPosition() const;
+
+        // Operators
+        [[nodiscard]] bool operator==(Column<T> const &other) const;
+        [[nodiscard]] bool operator!=(Column<T> const &other) const;
 };
 
 template<typename T>
-Column<T>::Column(int size, int position, T* elems) : size(size), position(position){
+Column<T>::Column(int const &size, int const &position, T const *elems) : size(size), position(position){
     this->elems = (T*) malloc(size*sizeof(T));
     for(int i=0;i<size;i++){
         this->elems[i] = elems[i];
     }
-}
-
-template<typename T>
-Column<T>::~Column(){
-
 }
 
 template<typename T>
@@ -49,9 +47,9 @@ Column<T>::Column(const Column<T>& other){
 }
 
 template<typename T>
-T Column<T>::get(int j) const {
-    if(j>size||j<0)
-        throw "Woops";
+T Column<T>::get(int const &j) const {
+    if(j > size || j <0 )
+        throw std::out_of_range("The given index doesn't fit into the column.");
     return elems[j];
 }
 
@@ -75,7 +73,7 @@ bool Column<T>::operator==(Column<T> const& other) const{
 
 template<typename T>
 bool Column<T>::operator!=(Column<T> const& other) const{
-    return !(*this==other);
+    return *this != other;
 }
 
 #endif

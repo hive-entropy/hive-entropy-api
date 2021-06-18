@@ -1,27 +1,21 @@
-#include <functional>
 #include "HiveEntropyNode.h"
-#include "Serializer.h"
 #include "GlobalContext.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri) {}
+HiveEntropyNode::HiveEntropyNode(std::string const &uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri) {}
 
-HiveEntropyNode::~HiveEntropyNode(){
-    //delete &coap;
-}
-
-void HiveEntropyNode::send(Message m){
+void HiveEntropyNode::send(Message const &m){
     coap.send(m);
 }
 
-void HiveEntropyNode::checkLiveness(string uri){
+void HiveEntropyNode::checkLiveliness(std::string target){
     Message m;
 
-    if(uri.find("coap://")==std::string::npos)
-        uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
-        uri +="/";
+    if(target.find("coap://") == std::string::npos)
+        target = "coap://" + target;
+    if(target.find_last_of('/') != target.size() - 1)
+        target +="/";
         
-    m.setDest(uri+"health");
+    m.setDest(target + "health");
     m.setHttpMethod(HttpMethod::GET);
     m.setType(MessageType::NON_CONFIRMABLE);
 
@@ -47,20 +41,20 @@ void HiveEntropyNode::resolveNodeIdentities(){
     send(m);
 }
 
-void HiveEntropyNode::registerResponseHandler(coap_response_handler_t func){
+void HiveEntropyNode::registerResponseHandler(coap_response_handler_t const &func){
     coap.registerResponseHandler(func);
 }
 
 void HiveEntropyNode::keepAlive(){
     coap.waitForDeath();
-};
+}
 
-void HiveEntropyNode::sendHardwareSpecification(string uri){
+void HiveEntropyNode::sendHardwareSpecification(std::string uri){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
         uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
+    if(uri.find_last_of('/')!=uri.size()-1)
         uri +="/";
 
     m.setDest(uri+"hardware");
@@ -70,12 +64,12 @@ void HiveEntropyNode::sendHardwareSpecification(string uri){
     send(m);
 }
 
-void HiveEntropyNode::sendAskingHardwareSpecification(string uri){
+void HiveEntropyNode::sendAskingHardwareSpecification(std::string uri){
     Message m;
 
     if(uri.find("coap://")==std::string::npos)
         uri = "coap://"+uri;
-    if(uri.find_last_of("/")!=uri.size()-1)
+    if(uri.find_last_of('/')!=uri.size()-1)
         uri +="/";
 
     m.setDest(uri+"hardware");

@@ -120,9 +120,9 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     spdlog::set_level(spdlog::level::info);
     spdlog::set_pattern("[%H:%M:%S.%e] [%!] (%l) %v");
 
-    Peer p;
+    /*Peer p;
     p.setAddress("192.168.1.35:9999");
-    peers.push_back(p);
+    peers.push_back(p);*/
 }
 
 template<typename T>
@@ -156,13 +156,13 @@ template<typename T>
 std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b){
     std::string uid = generateUID();
 
-    spdlog::info("Obtained following UID={}",uid);
+    spdlog::info("Obtained following UID={}", uid);
 
     Matrix<T> result(a.getRows()-(b.getRows()/2)*2,a.getColumns()-(b.getColumns()/2)*2);
-    storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid,result));
-    spdlog::info("Created result for UID={}",uid);
+    storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid, result));
+    spdlog::info("Created result for UID={}", uid);
 
-    std::thread splitter(&Distributor<T>::splitMatrixConvolutionTask,this,uid,a,b);
+    std::thread splitter(&Distributor<T>::splitMatrixConvolutionTask, this, uid, a, b);
     splitter.detach();
     spdlog::info("Created splitter thread for UID={}", uid);
 
@@ -304,7 +304,7 @@ void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Ma
         int counter = 0;
         for(int i=remainder+borderSizeV;i<a.getRows()-borderSizeV;i+=packetSize){
             node->sendMatrixConvolutionTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(i-borderSizeV,0,std::min({i+packetSize-1+borderSizeV,a.getRows()-1}),a.getColumns()-1),b,uid,i-borderSizeV,0);
-            Block block(&peers[counter%nodeCount],i-borderSizeV,i+packetSize-1,0,a.getColumns()-1);
+            Block block(peers[counter%nodeCount], i-borderSizeV, i+packetSize-1, 0, a.getColumns()-1);
             pendingBlocks[uid].push_back(block);
             spdlog::info("Sent packet ({},{}) to node {}",i,0,peers[counter%nodeCount].getAddress());
             counter++;
@@ -321,7 +321,7 @@ void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Ma
         int counter = 0;
         for(int i=remainder+borderSizeH;i<a.getRows()-borderSizeH;i+=packetSize){
                 node->sendMatrixConvolutionTask(peers[counter%nodeCount].getAddress(),a.getSubmatrix(0,std::max({0,i-borderSizeH}),a.getRows()-1,std::min({i+packetSize-1+borderSizeH,a.getColumns()-1})),b,uid,0,i-borderSizeH);
-                Block block(&peers[counter%nodeCount],0,a.getRows()-1,i-borderSizeH,i+packetSize-1);
+                Block block(peers[counter%nodeCount],0,a.getRows()-1,i-borderSizeH,i+packetSize-1);
                 pendingBlocks[uid].push_back(block);
                 spdlog::info("Sent packet ({},{}) to node {}",0,i,peers[counter%nodeCount].getAddress());
                 counter++;
@@ -341,7 +341,7 @@ void Distributor<T>::observer(std::string uid, Matrix<T> a, Matrix<T> b, Multipl
 
         for(Block block : pendingBlocks[uid]){
             if(block.getTimestamp()+std::chrono::seconds(std::stoi(settings[Parameter::RESULT_TIMEOUT]))>std::chrono::steady_clock::now()){
-                Peer* responsible = block.getResponsible();
+                auto responsible = block.getResponsible();
                 if(responsible!=nullptr){
                     std::unique_lock<std::mutex> addrLock(addressLock);
                     bool alive = cvs[uid].wait_for(lock,std::chrono::seconds(std::stoi(settings[Parameter::HEALTH_TIMEOUT])),[this,responsible]{
