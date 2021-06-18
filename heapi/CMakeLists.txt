@@ -43,6 +43,7 @@ add_library(HiveEntropyAPI
         src/Hardware.cpp
         src/Peer.cpp
         src/Block.cpp
+        src/Serializer.cpp
         )
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
