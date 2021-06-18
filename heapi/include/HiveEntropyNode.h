@@ -105,21 +105,25 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
 
     coap.addResourceHandler(uri, coapMethod, [](coap_resource_t *resource, coap_session_t *session, const coap_pdu_t *request, const coap_string_t *query, coap_pdu_t *response){
         if(request){
+            spdlog::info("Received message to be handled asynchronously");
             coap_async_t *async;
 
             coap_bin_const_t token = coap_pdu_get_token(request);
             async = coap_find_async(session, token);
 
             if (!async) {
+                spdlog::warn("Async state not found, creating...");
                 async = coap_register_async(session, request,0);
                 if (async == NULL) {
                     coap_pdu_set_code(response, COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE);
                     return;
                 }
+                
                 Message inputMessage(session, request);
 
                 canDie[coap_pdu_get_mid(request)] = false; 
                 std::thread t([](coap_session_t* sess, coap_bin_const_t* tok, Message input, coap_mid_t mid){
+                    spdlog::info("Starting asynchronous handling");
                     std::unique_lock<std::mutex> lock(locks[mid]);
                     coap_async_t* async = coap_find_async(sess, *tok);
                     canDie[mid] = true;
@@ -127,6 +131,7 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
 
                     Message* output  = new Message();
                     *output = F(input);
+                    spdlog::info("Intercepted result");
                     if(async){
                         coap_async_set_app_data(async,output);
                         coap_async_set_delay(async,1);
@@ -142,15 +147,18 @@ void HiveEntropyNode::registerAsynchronousHandler(string uri, HttpMethod method)
             }
         }
 
+        spdlog::info("Starting asynchronous response");
         coap_async_t *async;
         coap_bin_const_t token = coap_pdu_get_token(request);
         async = coap_find_async(session, token);
 
         if(async){
+            spdlog::info("Found content to send");
             Message* m = (Message*) coap_async_get_app_data(async);
             m->fillResponse(resource,session,request,response);
         }
         else{
+            spdlog::error("Asynchronous state doesn't exist");
             coap_pdu_set_code(response, COAP_RESPONSE_CODE_SERVICE_UNAVAILABLE);
             return;
         }
