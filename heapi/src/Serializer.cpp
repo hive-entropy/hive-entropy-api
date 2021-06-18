@@ -12,8 +12,9 @@ void Serializer::printSerializedDimensionsBits(size_t const size, void const * c
         {
             byte = b[i] & (1<<j);
             byte >>= j;
-            printf("%u ", byte);
+            printf("%u", byte);
         }
+        printf(" ");
     }
     puts("");
 }
