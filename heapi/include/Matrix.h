@@ -280,10 +280,10 @@ Matrix<T>& Matrix<T>::operator*=(Matrix<T> const& other){
             c_tab[i] = static_cast<T>(trailedC_tab[i]);
     }
     else if(std::is_same<T,float>::value){
-        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<float*>(&data),this->columns,reinterpret_cast<float*>(&other.data),other.columns,0.0,reinterpret_cast<float*>(c_tab),other.columns);
+        cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<float*>(data.data()),this->columns,reinterpret_cast<float*>(other.data.data()),other.columns,0.0,reinterpret_cast<float*>(c_tab),other.columns);
     }
     else if(std::is_same<T,double>::value){
-        cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<double*>(&data),this->columns,reinterpret_cast<double*>(&other.data),other.columns,0.0,reinterpret_cast<double*>(c_tab),other.columns);
+        cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,this->rows,other.columns,this->columns,1.0,reinterpret_cast<double*>(data.data()),this->columns,reinterpret_cast<double*>(other.data.data()),other.columns,0.0,reinterpret_cast<double*>(c_tab),other.columns);
     }
     else{
         throw "Matrix multiplication is not supported for this type";
