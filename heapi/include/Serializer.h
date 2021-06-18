@@ -12,6 +12,25 @@
 #include "Column.h"
 #include "Row.h"
 
+
+void printBits(size_t const size, void const * const ptr)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte;
+    int i, j;
+
+    for (i=size-1;i>=0;i--)
+    {
+        for (j=7;j>=0;j--)
+        {
+            byte = b[i] & (1<<j);
+            byte >>= j;
+            printf("%u", byte);
+        }
+    }
+    puts("");
+}
+
 class Serializer{
     public:
         /**
@@ -207,10 +226,7 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
     uint16_t dimensions[2];
     memcpy(dimensions,content,2*sizeof(uint16_t));
 
-    cout << "Found following dimensions" << endl;
-    for (int i = 0; i < 4; ++i)
-        cout << hex << setfill('0') << setw(2) << content[i] << " ";
-    cout << endl;
+    printBits(4,content);
 
     int rows = dimensions[0];
     int cols = dimensions[1];
@@ -254,11 +270,8 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
 
     std::string ser_dims(dims,2*sizeof(uint16_t));
 
-    cout << "Found following dimensions" << endl;
-    for (int i = 0; i < 4; ++i)
-        cout << hex << setfill('0') << setw(2) << ser_dims[i] << " ";
-    cout << endl;
-    
+    printBits(4,ser_dims.c_str());
+        
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
     return ser_dims+serialized;
 }
