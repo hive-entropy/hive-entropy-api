@@ -107,7 +107,7 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
 
         std::string current_substring(coded.substr(offset,rows*cols*sizeof(T)+2*sizeof(uint16_t)));
 
-        printSerializedDimensionsBits(current_substring.length(),current_substring.c_str());
+        //printSerializedDimensionsBits(current_substring.length(),current_substring.c_str());
 
         list.push_back(unserializeMatrix<T>(current_substring));
         offset += sizeof(T)*rows*cols+2*sizeof(uint16_t);
