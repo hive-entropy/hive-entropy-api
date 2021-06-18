@@ -256,7 +256,7 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
 
     cout << "Found following dimensions" << endl;
     for (int i = 0; i < 4; ++i)
-        cout << hex << setfill('0') << setw(2) << content[i] << " ";
+        cout << hex << setfill('0') << setw(2) << ser_dims[i] << " ";
     cout << endl;
     
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
