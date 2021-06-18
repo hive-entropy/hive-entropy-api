@@ -13,24 +13,6 @@
 #include "Row.h"
 
 
-void printSerializedDimensionsBits(size_t const size, void const * const ptr)
-{
-    unsigned char *b = (unsigned char*) ptr;
-    unsigned char byte;
-    int i, j;
-
-    for (i=size-1;i>=0;i--)
-    {
-        for (j=7;j>=0;j--)
-        {
-            byte = b[i] & (1<<j);
-            byte >>= j;
-            printf("%u", byte);
-        }
-    }
-    puts("");
-}
-
 class Serializer{
     public:
         /**
@@ -100,6 +82,8 @@ class Serializer{
          */
         template<typename T>
         static std::string serialize(Matrix<T> mat, std::string encoding="same");
+
+        static void printSerializedDimensionsBits(size_t const size, void const * const ptr);
 };
 
 template<typename T>
@@ -274,6 +258,24 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
         
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
     return ser_dims+serialized;
+}
+
+void Serializer::printSerializedDimensionsBits(size_t const size, void const * const ptr)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte;
+    int i, j;
+
+    for (i=size-1;i>=0;i--)
+    {
+        for (j=7;j>=0;j--)
+        {
+            byte = b[i] & (1<<j);
+            byte >>= j;
+            printf("%u", byte);
+        }
+    }
+    puts("");
 }
 
 #endif
