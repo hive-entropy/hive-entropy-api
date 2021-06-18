@@ -6,6 +6,8 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
+#include <iomanip>
+
 #include "Matrix.h"
 #include "Column.h"
 #include "Row.h"
