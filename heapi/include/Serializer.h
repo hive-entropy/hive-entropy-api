@@ -106,6 +106,9 @@ std::vector<Matrix<T>> Serializer::unserializeMatrices(std::string coded, std::s
         spdlog::debug("Found matrix of dimensions {}x{} to unserialize",rows,cols);
 
         std::string current_substring(coded.substr(coded.length()-length,rows*cols*sizeof(T)+2*sizeof(uint16_t)));
+
+        printSerializedDimensionsBits(current_substring.length(),current_substring.c_str());
+
         list.push_back(unserializeMatrix<T>(current_substring));
         length -= sizeof(T)*rows*cols+2*sizeof(uint16_t);
         content += sizeof(T)*rows*cols+2*sizeof(uint16_t);
@@ -210,8 +213,6 @@ Matrix<T> Serializer::unserializeMatrix(const std::string coded, std::string enc
     uint16_t dimensions[2];
     memcpy(dimensions,content,2*sizeof(uint16_t));
 
-    printSerializedDimensionsBits(4,content);
-
     int rows = dimensions[0];
     int cols = dimensions[1];
 
@@ -254,8 +255,6 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
 
     std::string ser_dims(dims,2*sizeof(uint16_t));
 
-    printSerializedDimensionsBits(4,ser_dims.c_str());
-        
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
     return ser_dims+serialized;
 }
