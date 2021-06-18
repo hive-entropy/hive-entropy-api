@@ -118,7 +118,7 @@ void CoapEndpoint::send(Message m){
 	if(!sess){
 		sess = coap_new_client_session(context,&localAddress,&dstAddr,COAP_PROTO_UDP);
 		coap_session_set_max_retransmit(sess,10);
-		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("01234567"));
+		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("0000000"));
 	}
 	
 	coap_pdu_t* coapMessage = m.toCoapMessage(sess);

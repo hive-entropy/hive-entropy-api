@@ -12,20 +12,31 @@ SCENARIO("We should be able to serialize and deserialize objects","[serializer]"
         Matrix<int> A(3,3,a);
         Matrix<float> B(3,3,b);
         Matrix<double> C(3,3,c);
+
+        Matrix<int> big(800,1000);
+        for(int i=0; i< 800; i++){
+            for(int j=0; j<1000; j++){
+                big.put(i,j,(int) rand());
+            }
+        }
+
         
         WHEN("We serialize and deserialize them"){
             std::string a_ser = Serializer::serialize(A);
             std::string b_ser = Serializer::serialize(B);
             std::string c_ser = Serializer::serialize(C);
+            std::string bigSer = Serializer::serialize(big);
 
             Matrix<int> A1 = Serializer::unserializeMatrix<int>(a_ser);
             Matrix<float> B1 = Serializer::unserializeMatrix<float>(b_ser);
             Matrix<double> C1 = Serializer::unserializeMatrix<double>(c_ser);
+            Matrix<int> big1 = Serializer::unserializeMatrix<int>(bigSer);
 
             THEN("The matrices should be equal to their original values"){
                 REQUIRE(A==A1);
                 REQUIRE(B==B1);
                 REQUIRE(C==C1);
+                REQUIRE(big==big1);
             }
         }
     }
@@ -37,11 +48,20 @@ SCENARIO("We should be able to serialize and deserialize objects","[serializer]"
 
         Matrix<int> A(3,3,a);
         Matrix<int> B(2,2,b);
+
+        Matrix<int> big(800,1000);
+        for(int i=0; i< 800; i++){
+            for(int j=0; j<1000; j++){
+                big.put(i,j,(int) rand());
+            }
+        }
+
         Matrix<int> C(2,5,c);
 
         std::vector<Matrix<int>> vec = std::vector<Matrix<int>>();
         vec.push_back(A);
         vec.push_back(B);
+        vec.push_back(big);
         vec.push_back(C);
 
         WHEN("We serialize and deserialize them"){
@@ -52,6 +72,7 @@ SCENARIO("We should be able to serialize and deserialize objects","[serializer]"
                 REQUIRE(vec.at(0)==vec2.at(0));
                 REQUIRE(vec.at(1)==vec2.at(1));
                 REQUIRE(vec.at(2)==vec2.at(2));
+                REQUIRE(vec.at(3)==vec2.at(3));
             }
         }
     }

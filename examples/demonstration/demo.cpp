@@ -1,5 +1,5 @@
 #include <full.h>
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include "iostream"
 #include <fcntl.h>
 #include <unistd.h>
@@ -9,8 +9,8 @@ using namespace std;
 #define BLUE 0
 #define GREEN 30
 #define RED 150
-#define WIDTH 200
-#define HEIGHT 200
+#define WIDTH 800
+#define HEIGHT 600
 #define H_LIMIT 30
 #define L_LIMIT 30
 #define NEIBOR_WIDTH 3
@@ -33,7 +33,7 @@ short maskTab[] = {01, 04, 06, 04, 01,
     /*short maskTab[] = {0, 0, 0,
                        0, 1, 0,
                        0, 0, 0};*/
-    Matrix<unsigned short> mask(3, 3, maskTab);
+    Matrix<unsigned short> mask(5, 5, maskTab);
 
     cv::VideoCapture camera(0, cv::CAP_V4L2);
     camera.set(3, WIDTH);

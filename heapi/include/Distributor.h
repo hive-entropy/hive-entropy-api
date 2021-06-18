@@ -119,6 +119,10 @@ Distributor<T>::Distributor(HiveEntropyNode* n) : node(n){
     configure(Parameter::FRESHNESS,10);
     spdlog::set_level(spdlog::level::info);
     spdlog::set_pattern("[%H:%M:%S.%e] [%!] (%l) %v");
+
+    // Peer p;
+    // p.setAddress("192.168.1.35:9999");
+    // peers.push_back(p);
 }
 
 template<typename T>
@@ -155,15 +159,15 @@ std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b
     spdlog::info("Obtained following UID={}",uid);
 
     Matrix<T> result(a.getRows()-b.getRows()/2,a.getColumns()-b.getColumns()/2);
-    storedPartialResults.insert(std::pair<std::string,Matrix<T>>(uid,result));
+    storedPartialResults[uid] = result;
     spdlog::info("Created result for UID={}",uid);
 
     std::thread splitter(&Distributor<T>::splitMatrixConvolutionTask,this,uid,a,b);
     splitter.detach();
     spdlog::info("Created splitter thread for UID={}", uid);
 
-    //node->resolveNodeIdentities();
-    lastHardwareCheck =std::chrono::steady_clock::now();
+    node->resolveNodeIdentities();
+    lastHardwareCheck = std::chrono::steady_clock::now();
     spdlog::info("Queried node assistance");
 
     return uid;
@@ -603,7 +607,7 @@ void Distributor<T>::handleResultResponse(Message m){
         Matrix<T> result = Serializer::unserializeMatrix<T>(m.getContent());
 
         spdlog::info("Extracted submatrix:");
-        result.show();
+        //result.show();
         spdlog::info("Inserting...");
         if(storedPartialResults.find(uid)!=storedPartialResults.end()){
             storedPartialResults.at(uid).putSubmatrix(std::stoi(m.getHeaders()[Headers::INSERT_AT_X]), std::stoi(m.getHeaders()[Headers::INSERT_AT_Y]), result);

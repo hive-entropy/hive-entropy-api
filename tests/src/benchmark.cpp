@@ -13,19 +13,19 @@ TEST_CASE("Benchmarking"){
 
     srand((unsigned) time(NULL));
 
-    Matrix<unsigned short> a(_COTE,_COTE);
+    Matrix<float> a(_COTE,_COTE);
 
     for(int i=0; i< _COTE; i++){
         for(int j=0; j<_COTE; j++){
-            a.put(i,j,(unsigned short) rand());
+            a.put(i,j,(float) rand());
         }
     }
 
-    unsigned short b_tab[] = {1,2,1,2,4,2,1,2,1};
-    Matrix<unsigned short> blur(3,3,b_tab);
+    float b_tab[] = {1,2,1,2,4,2,1,2,1};
+    Matrix<float> blur(3,3,b_tab);
 
     HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
-    Distributor<unsigned short> dist(n);
+    Distributor<float> dist(n);
     dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
     BENCHMARK("Distributed RowColumn"){
         std::string id = dist.distributeMatrixConvolution(a,blur);
