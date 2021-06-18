@@ -30,6 +30,7 @@ enum EdgeHandling {
 };
 
 enum ImagePostProcess {
+    None,
     Normalize,
     Clamp
 };
@@ -491,7 +492,7 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask
             // For each pixel in the mask
             for (int maskRow = 0; maskRow < mask.getRows(); ++maskRow) {
                 for (int maskCol = 0; maskCol < mask.getColumns(); ++maskCol) {
-                    T matrixValue = matrix[row + offset + maskRow][col + offset + maskCol];
+                    T matrixValue = matrix[row + maskRow][col + maskCol];
                     M maskValue = mask[maskRow][maskCol];
                     accumulator += (matrixValue * maskValue);
                 }
