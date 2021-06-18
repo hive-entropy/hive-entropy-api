@@ -70,7 +70,7 @@ class Serializer{
          * @return Matrix<T> The Unserialized Matrix object.
          */
         template<typename T>
-        static Matrix<T> unserializeMatrix(std::string coded, std::string encoding="same");
+        static Matrix<T> unserializeMatrix(std::string const coded, std::string encoding="same");
 
         /**
          * @brief Serializes a matrix.
@@ -199,7 +199,7 @@ std::pair<Row<T>,Column<T>> Serializer::unserializeRowColumn(std::string coded, 
 
 
 template<typename T>
-Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding){
+Matrix<T> Serializer::unserializeMatrix(const std::string coded, std::string encoding){
     if(coded.length()<2*sizeof(uint16_t))
         throw "The serialized object should at least contain the dimensions";
 
