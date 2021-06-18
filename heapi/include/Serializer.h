@@ -13,7 +13,7 @@
 #include "Row.h"
 
 
-void printBits(size_t const size, void const * const ptr)
+void printBits2(size_t const size, void const * const ptr)
 {
     unsigned char *b = (unsigned char*) ptr;
     unsigned char byte;
@@ -226,7 +226,7 @@ Matrix<T> Serializer::unserializeMatrix(std::string coded, std::string encoding)
     uint16_t dimensions[2];
     memcpy(dimensions,content,2*sizeof(uint16_t));
 
-    printBits(4,content);
+    printBits2(4,content);
 
     int rows = dimensions[0];
     int cols = dimensions[1];
@@ -270,7 +270,7 @@ std::string Serializer::serialize(Matrix<T> mat, std::string encoding){
 
     std::string ser_dims(dims,2*sizeof(uint16_t));
 
-    printBits(4,ser_dims.c_str());
+    printBits2(4,ser_dims.c_str());
         
     std::string serialized(body,mat.getRows()*mat.getColumns()*sizeof(T));
     return ser_dims+serialized;
