@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "hicpp-exception-baseclass"
 #ifndef MATRIX_H
 #define MATRIX_H
 
@@ -12,8 +14,6 @@
 
 #include "IncompatibleDimensionsException.h"
 #include "OutOfBoundException.h"
-
-void something();
 
 namespace MatrixArchetype{
     static const char ZEROS = '0';
@@ -47,68 +47,70 @@ class Matrix{
         std::vector<T> data;
 
         template<typename M>
-        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) >> edgeHandlingMethods;
+        static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) >> edgeHandlingMethods;
         template<typename M>
-        static Matrix<T> extendConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
+        static Matrix<T> extendConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
         template<typename M>
-        static Matrix<T> wrapConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
+        static Matrix<T> wrapConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
         template<typename M>
-        static Matrix<T> mirrorConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
+        static Matrix<T> mirrorConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
         template<typename M>
-        static Matrix<T> cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
+        static Matrix<T> cropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
         template<typename M>
-        static Matrix<T> kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess);
+        static Matrix<T> kernelCropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
 
     public:
+        // Constructors
         template<typename M>
-        Matrix(int rows, int columns, M* data);
-        Matrix(int rows, int columns, char archetype=MatrixArchetype::ZEROS);
+        Matrix(int const &rows, int const &columns, M const *data);
+        Matrix(int const &rows, int const &columns, char const &archetype= MatrixArchetype::ZEROS);
         template<typename M>
-        explicit Matrix(Matrix<M>& m);
-        ~Matrix();
+        explicit Matrix(Matrix<M> const &m);
 
-        void putColumn(int j, T* elems);
-        void putRow(int i, T* elems);
-        void put(int i, int j, T elem);
+        // Getters
+        [[nodiscard]] int getRows() const;
+        [[nodiscard]] int getColumns() const;
+        [[nodiscard]] int getType() const;
+        [[nodiscard]] int getElements() const;
 
-        void putSubmatrix(int startRow, int startColumn, Matrix const& m);
-        Matrix getSubmatrix(int startRow, int startColumn, int endRow, int endColumn);
+        [[nodiscard]] T get(int const &i, int const &j) const;
+        [[nodiscard]] T* getRow(int const &i) const;
+        [[nodiscard]] T* getColumn(int const &j) const;
 
-        T get(int i, int j);
-        T* getRow(int i);
-        T* getColumn(int j);
+        [[nodiscard]] Matrix getSubmatrix(int const &startRow, int const &startColumn, int const &endRow, int const &endColumn) const;
 
         T* getData();
-        int getRows() const;
-        int getColumns() const;
-        int getType() const;
-        int getElements() const;
+        [[nodiscard]] T const* getData() const;
 
-        void setData(T* data);
+        T* operator[](int const &index);
+        T const* operator[](int const &index) const;
 
+        // Setters
+        void put(int const &i, int const &j, T elem);
+        void putRow(int const &i, T const *elems);
+        void putColumn(int const &j, T const *elems);
+        void putSubmatrix(int const &startRow, int const &startColumn, Matrix const &m);
+        void setData(const T *data);
+
+        // Operations
         template<typename M>
-        Matrix convolve(Matrix<M> const &mask, EdgeHandling edgeHandler = EdgeHandling::Extend, ushort nbIteration = 1, ImagePostProcess postProcess = ImagePostProcess::Normalize);
-        Matrix operator*(Matrix<T> const& other);
-        Matrix operator+(Matrix<T> const& other);
-        Matrix operator-(Matrix<T> const& other);
-        Matrix& operator*=(Matrix<T> const& other);
-        Matrix& operator+=(Matrix<T> const& other);
-        Matrix& operator-=(Matrix<T> const& other);
-        bool operator==(Matrix<T> const& other) const;
-        bool operator!=(Matrix<T> const& other) const;
-        T* operator[](int const& index);
+        Matrix convolve(Matrix<M> const &mask, EdgeHandling const &edgeHandler = EdgeHandling::Extend, ushort const &nbIteration = 1, ImagePostProcess const &postProcess = ImagePostProcess::Normalize) const;
+        Matrix operator*(Matrix<T> const &other);
+        Matrix operator+(Matrix<T> const &other);
+        Matrix operator-(Matrix<T> const &other);
+        Matrix& operator*=(Matrix<T> const &other);
+        Matrix& operator+=(Matrix<T> const &other);
+        Matrix& operator-=(Matrix<T> const &other);
+        bool operator==(Matrix<T> const &other) const;
+        bool operator!=(Matrix<T> const &other) const;
 
-        void show();
-        std::string toString();
+        void show() const;
+        [[nodiscard]] std::string toString() const;
 };
 
 template<typename T>
-Matrix<T>::~Matrix(){
-}
-
-template<typename T>
 template<typename M>
-Matrix<T>::Matrix(int rows, int columns, M* data) : rows(rows), columns(columns){
+Matrix<T>::Matrix(int const &rows, int const &columns, M const *data) : rows(rows), columns(columns) {
     static_assert(std::is_arithmetic<M>::value, "The Matrix type must be an arithmetic type");
     elements = rows*columns;
     // Copy the input data to the intern data vector
@@ -119,7 +121,7 @@ Matrix<T>::Matrix(int rows, int columns, M* data) : rows(rows), columns(columns)
 }
 
 template<typename T>
-Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(columns){
+Matrix<T>::Matrix(int const &rows, int const &columns, char const &archetype) : rows(rows), columns(columns){
     elements = rows*columns;
     this->data.resize(elements);
     switch(archetype){
@@ -143,7 +145,7 @@ Matrix<T>::Matrix(int rows, int columns, char archetype) : rows(rows), columns(c
 
 template<typename T>
 template<typename M>
-Matrix<T>::Matrix(Matrix<M>& m){
+Matrix<T>::Matrix(Matrix<M> const &m){
     static_assert(std::is_arithmetic<M>::value, "The Matrix type must be an arithmetic type");
     rows = m.getRows();
     columns = m.getColumns();
@@ -155,36 +157,36 @@ Matrix<T>::Matrix(Matrix<M>& m){
 }
 
 template<typename T>
-void Matrix<T>::putColumn(int j, T* elems){
+void Matrix<T>::putColumn(int const &j, T const *elems){
     if(j<0||j>=columns)
-        throw new OutOfBoundException("j",j,std::vector<int>(0,columns));
+        throw OutOfBoundException("j",j,std::vector<int>(0,columns));
     for(int i=0;i<rows;i++)
         data[columns*i+j] = elems[i];
 }
 
 template<typename T>
-void Matrix<T>::putRow(int i, T* elems){
+void Matrix<T>::putRow(int const &i, T const *elems){
     if(i<0||i>=rows)
-        throw new OutOfBoundException("i",i,std::vector<int>(0,rows));
+        throw OutOfBoundException("i",i,std::vector<int>(0,rows));
     for(int j=0;j<columns;j++)
         data[columns*i+j] = elems[j];
 }
 
 template<typename T>
-void Matrix<T>::put(int i, int j, T elem){
+void Matrix<T>::put(int const &i, int const &j, T elem){
     if(i<0||i>=rows)
-        new OutOfBoundException("i",i,std::vector<int>(0,rows));
+        throw OutOfBoundException("i",i,std::vector<int>(0,rows));
     else if(j<0||j>=columns)
-        throw new OutOfBoundException("j",j,std::vector<int>(0,columns));
+        throw OutOfBoundException("j",j,std::vector<int>(0,columns));
     data[columns*i+j] = elem;
 }
 
 template<typename T>
-void Matrix<T>::putSubmatrix(int startRow, int startColumn, Matrix const& m){
+void Matrix<T>::putSubmatrix(int const &startRow, int const &startColumn, Matrix const &m){
     if(startColumn+m.columns-1>=columns)
-        throw new OutOfBoundException("m.columns",m.columns,std::vector<int>(0,columns+1-startColumn));
+        throw OutOfBoundException("m.columns",m.columns,std::vector<int>(0,columns+1-startColumn));
     else if(startRow+m.rows-1>=rows)
-        throw new OutOfBoundException("m.rows",m.rows,std::vector<int>(0,rows-startRow+1));
+        throw OutOfBoundException("m.rows",m.rows,std::vector<int>(0,rows-startRow+1));
     for(int i=startRow;i<m.rows+startRow;i++){
         for(int j=startColumn;j<m.columns+startColumn;j++){
             data[columns*i+j] = static_cast<T>(m.data[m.columns*(i-startRow)+(j-startColumn)]);
@@ -193,7 +195,7 @@ void Matrix<T>::putSubmatrix(int startRow, int startColumn, Matrix const& m){
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::getSubmatrix(int startRow, int startColumn,int endRow, int endColumn){
+Matrix<T> Matrix<T>::getSubmatrix(int const &startRow, int const &startColumn,int const &endRow, int const &endColumn) const {
     if(startColumn<0||startColumn>=columns||endColumn<startColumn||endColumn>=columns||startRow<0||startRow>=rows||startRow>endRow||endRow>=rows||endRow<0)
         throw "Whatever";
     Matrix<T> res(endRow-startRow+1,endColumn-startColumn+1);
@@ -206,7 +208,7 @@ Matrix<T> Matrix<T>::getSubmatrix(int startRow, int startColumn,int endRow, int 
 }
 
 template<typename T>
-T Matrix<T>::get(int i, int j){
+T Matrix<T>::get(int const &i, int const &j) const {
     if(i<0||i>=rows)
         throw OutOfBoundException("i",i,std::vector<int>(0,rows));
     else if(j<0||j>=columns)
@@ -215,9 +217,9 @@ T Matrix<T>::get(int i, int j){
 }
 
 template<typename T>
-T* Matrix<T>::getRow(int i){
+T* Matrix<T>::getRow(int const &i) const {
     if(i<0||i>=rows)
-        throw new OutOfBoundException("i",i,std::vector<int>(0,rows));
+        throw OutOfBoundException("i",i,std::vector<int>(0,rows));
     T* res = (T*) malloc(columns*sizeof(T));
     for(int j=0;j<columns;j++)
         res[j] = data[columns*i+j];
@@ -225,9 +227,9 @@ T* Matrix<T>::getRow(int i){
 }
 
 template<typename T>
-T* Matrix<T>::getColumn(int j){
+T* Matrix<T>::getColumn(int const &j) const {
     if(j<0||j>=columns)
-        throw new OutOfBoundException("j",j,std::vector<int>(0,columns));
+        throw OutOfBoundException("j",j,std::vector<int>(0,columns));
     T* res = (T*) malloc(rows*sizeof(T));
     for(int i=0;i<rows;i++)
         res[i] = data[columns*i+j];
@@ -236,6 +238,10 @@ T* Matrix<T>::getColumn(int j){
 
 template<typename T>
 T* Matrix<T>::getData() {
+    return data.data();
+}
+template<typename T>
+T const* Matrix<T>::getData() const {
     return data.data();
 }
 
@@ -260,9 +266,9 @@ int Matrix<T>::getElements() const {
 }
 
 template<typename T>
-Matrix<T>& Matrix<T>::operator*=(Matrix<T> const& other){
+Matrix<T>& Matrix<T>::operator*=(Matrix<T> const &other){
     if(columns!=other.rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::MULTIPLICATION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::MULTIPLICATION);
     Matrix<T> c(this->rows,other.columns,MatrixArchetype::ZEROS);
     T* c_tab = (T*) malloc(c.getRows()*c.getColumns()*sizeof(T));
     if(std::is_same<T,int>::value){
@@ -294,16 +300,16 @@ Matrix<T>& Matrix<T>::operator*=(Matrix<T> const& other){
 }
 
 template<typename T>
-void Matrix<T>::setData(T* data){
+void Matrix<T>::setData(const T *data){
     for(int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
             this->data[columns*i+j] = data[columns*i+j];
 }
 
 template<typename T>
-Matrix<T>& Matrix<T>::operator+=(Matrix<T> const& other){
+Matrix<T>& Matrix<T>::operator+=(Matrix<T> const &other){
     if(other.columns!=columns||other.rows!=rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::ADDITION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::ADDITION);
     for (int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
             data[columns*i+j] += static_cast<T>(other.data[other.columns*i+j]);
@@ -311,9 +317,9 @@ Matrix<T>& Matrix<T>::operator+=(Matrix<T> const& other){
 }
 
 template<typename T>
-Matrix<T>& Matrix<T>::operator-=(Matrix<T> const& other){
+Matrix<T>& Matrix<T>::operator-=(Matrix<T> const &other){
     if(other.columns!=columns||other.rows!=rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::SUBTRACTION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::SUBTRACTION);
     for (int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
             data[columns*i+j] -= static_cast<T>(other.data[other.columns*i+j]);
@@ -321,32 +327,32 @@ Matrix<T>& Matrix<T>::operator-=(Matrix<T> const& other){
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::operator*(Matrix<T> const& other){
+Matrix<T> Matrix<T>::operator*(Matrix<T> const &other){
     if(columns!=other.rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::MULTIPLICATION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::MULTIPLICATION);
     Matrix res = *this;
     return res *= other;
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::operator+(Matrix<T> const& other){
+Matrix<T> Matrix<T>::operator+(Matrix<T> const &other){
     if(other.columns!=columns||other.rows!=rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::ADDITION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::ADDITION);
     Matrix res = *this;
     return res += other;
 }
 
 //Check for equal sizes
 template<typename T>
-Matrix<T> Matrix<T>::operator-(Matrix<T> const& other){
+Matrix<T> Matrix<T>::operator-(Matrix<T> const &other){
     if(other.columns!=columns||other.rows!=rows)
-        throw new IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::SUBTRACTION);
+        throw IncompatibleDimensionsException(rows, columns,other.rows,other.columns,Operation::SUBTRACTION);
     Matrix res = *this;
     return res -= other;
 }
 
 template<typename T>
-bool Matrix<T>::operator==(Matrix<T> const& other) const{
+bool Matrix<T>::operator==(Matrix<T> const &other) const{
     if(columns!=other.columns||rows!=other.rows) return false;
     for(int i=0;i<rows;i++)
         for(int j=0;j<columns;j++)
@@ -355,22 +361,26 @@ bool Matrix<T>::operator==(Matrix<T> const& other) const{
 }
 
 template<typename T>
-bool Matrix<T>::operator!=(Matrix<T> const& other) const{
+bool Matrix<T>::operator!=(Matrix<T> const &other) const{
     return !(*this==other);
 }
 
 template<typename T>
-T* Matrix<T>::operator[](const int &index) {
+T* Matrix<T>::operator[](int const &index) {
+    return &data.data()[index * columns];
+}
+template<typename T>
+T const* Matrix<T>::operator[](int const &index) const {
     return &data.data()[index * columns];
 }
 
 template<typename T>
-void Matrix<T>::show() {
+void Matrix<T>::show() const {
     std::cout << toString() << std::endl;
 }
 
 template<typename T>
-std::string Matrix<T>::toString() {
+std::string Matrix<T>::toString() const {
     std::string output;
 
     for(int i = 0 ; i < rows ; i++)
@@ -399,7 +409,7 @@ std::ostream& operator<< (std::ostream& os, Matrix<T> value) {
 
 template<typename T>
 template<typename M>
-std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) >> Matrix<T>::edgeHandlingMethods = {
+std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) >> Matrix<T>::edgeHandlingMethods = {
         {EdgeHandling::Extend, Matrix<T>::extendConvolve<M>},
         {EdgeHandling::Wrap, Matrix<T>::wrapConvolve<M>},
         {EdgeHandling::Mirror, Matrix<T>::mirrorConvolve<M>},
@@ -409,7 +419,7 @@ std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> matrix, Matrix<M> mas
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
+Matrix<T> Matrix<T>::extendConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) {
     static_assert(std::is_arithmetic<M>::value, "The kernel type must be an arithmetic type");
     // Compute the mask offset
     int offset = std::floor((double) mask.getRows() / 2.0);
@@ -446,34 +456,30 @@ Matrix<T> Matrix<T>::extendConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostP
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
+Matrix<T> Matrix<T>::wrapConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) {
     throw "Not implemented yet!";
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
+Matrix<T> Matrix<T>::mirrorConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) {
     throw "Not implemented yet!";
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
-//    printf("Function cropConvolve\n");
-    // Compute the mask mean
-    float mean = 0;
+Matrix<T> Matrix<T>::cropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) {
+    // Compute the mask maskSum
+    float maskSum = 0;
     for (int i = 0; i < mask.getElements(); i++) {
-//        printf("Data : %d\n", mask.getData()[i]);
-        mean += (float) mask.getData()[i];
+        maskSum += mask.getData()[i];
     }
-//    printf("Mask sum : %f\n", mean);
     // Compute the mask offset
-    int offset = std::floor((double) mask.getRows() / 2.0);
+    int offset = std::floor(mask.getRows() / 2.0);
     // Create the interMatrix matrix
     Matrix<int> interMatrix(matrix.rows - offset * 2, matrix.columns - offset * 2, MatrixArchetype::ZEROS);
-//    Matrix<T> interMatrix(matrix);
     // Create the accumulator
-    int accumulator;
+    float accumulator;
     int minValue = INT16_MAX, maxValue = INT16_MIN;
 
     // For each pixel in the interMatrix matrix
@@ -487,21 +493,17 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostPro
                 for (int maskCol = 0; maskCol < mask.getColumns(); ++maskCol) {
                     T matrixValue = matrix[row + offset + maskRow][col + offset + maskCol];
                     M maskValue = mask[maskRow][maskCol];
-//                    printf("accumulator + (matrixValue * maskValue) = %d + (%d * %f) =", accumulator, matrixValue, maskValue);
                     accumulator += (matrixValue * maskValue);
-//                    printf("%d\n", accumulator);
                 }
             }
 
             // Update the interMatrix matrix's pixel
-            float temp = mean != 0 ? accumulator / mean : accumulator;
-            minValue = fmin(minValue, temp);
-            maxValue = fmax(maxValue, temp);
-            interMatrix[row][col] = temp;
-//            printf("Mean : %f, Accumulator : %d, Temp : %f, Min Value: %d, Max value : %d\n", mean, accumulator, temp, minValue, maxValue);
+            float newValue = maskSum != 0 ? accumulator / maskSum : accumulator;
+            minValue = static_cast<int>(fmin(minValue, newValue));
+            maxValue = static_cast<int>(fmax(maxValue, newValue));
+            interMatrix[row][col] = static_cast<int>(newValue);
         }
     }
-//    printf("Min Value: %d, Max value : %d\n", minValue, maxValue);
 
     // Clamp values to 0-255
     if (postProcess == ImagePostProcess::Clamp){
@@ -509,10 +511,7 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostPro
         {
             for (int col = 0; col < interMatrix.getColumns(); ++col)
             {
-//            printf("interMatrix[%d][%d] = ", interMatrix[row][col]);
                 interMatrix[row][col] = std::clamp(interMatrix[row][col], 0, 255);
-//                interMatrix[row][col] = interMatrix[row][col] < 255/2 ? 0 : 255;
-//            printf("%d\n", interMatrix[row][col]);
             }
         }
     }
@@ -523,10 +522,8 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostPro
         {
             for (int col = 0; col < interMatrix.getColumns(); ++col)
             {
-//                printf("interMatrix[%d][%d] = (%d - %d / %d) * 255 =", row, col, interMatrix[row][col], minValue, maxValue);
                 if (maxValue == 0) maxValue = 1;
-                interMatrix[row][col] = (int) (((float) (interMatrix[row][col] - minValue) / (float) maxValue) * 255);
-//                printf("%d\n", interMatrix[row][col]);
+                interMatrix[row][col] = (interMatrix[row][col] - minValue) * 255 / maxValue;
             }
         }
     }
@@ -538,13 +535,13 @@ Matrix<T> Matrix<T>::cropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostPro
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> matrix, Matrix<M> mask, ImagePostProcess postProcess) {
+Matrix<T> Matrix<T>::kernelCropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) {
     throw "Not implemented yet!";
 }
 
 template<typename T>
 template<typename M>
-Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling edgeHandler, ushort nbIteration, ImagePostProcess postProcess) {
+Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling const &edgeHandler, ushort const &nbIteration, ImagePostProcess const &postProcess) const {
     Matrix convolution = edgeHandlingMethods<M>[edgeHandler](*this, mask, postProcess);
     for (int i = 1; i < nbIteration; ++i) {
         convolution = edgeHandlingMethods<M>[edgeHandler](convolution, mask, postProcess);
@@ -553,3 +550,4 @@ Matrix<T> Matrix<T>::convolve(Matrix<M> const &mask, EdgeHandling edgeHandler, u
 }
 
 #endif
+#pragma clang diagnostic pop
