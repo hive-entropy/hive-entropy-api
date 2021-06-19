@@ -56,8 +56,6 @@ sudo cmake --build build/ --target install
 
 ## Utilisation
 
-**TODO** Décrire la compilation, l'installation, et les étapes à réaliser pour pouvoir utiliser la bibliothèque
-
 #### Initialiser le projet CMake
 ```
 cmake -Bbuild/ -S.
@@ -77,6 +75,19 @@ cmake --build build/ --target HiveEntropyTest
 #### Installer la bibliothèque
 ```
 [sudo] cmake --build build/ --target install
+```
+
+#### Générer la documentation
+Dépendances nécessaires :
+* doxygen
+* python-sphinx
+* python-sphinx_rtd_theme
+* python-breathe
+
+Exécuter les cibles doxygen, puis la cible sphinx.
+```bash
+cmake --build build/ --target Doxygen
+cmake --build build/ --target Sphinx
 ```
 
 ## Exemple
