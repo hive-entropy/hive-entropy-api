@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 Message::Message(){
     headers = std::map<Headers,std::string>();
@@ -48,7 +49,7 @@ Message::Message(coap_session_t const *sess, const coap_pdu_t* pdu){
             httpMethod = HttpMethod::BAD_REQUEST;
             break;
         default:
-            throw "This coap PDU is not handled.";
+            spdlog::warn("The PDU {} is not handled properly.", coap_pdu_get_code(pdu));
     }
 
     //OPTIONS

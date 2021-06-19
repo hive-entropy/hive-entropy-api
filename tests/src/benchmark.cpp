@@ -24,7 +24,7 @@ TEST_CASE("Benchmarking"){
     float b_tab[] = {1,2,1,2,4,2,1,2,1};
     Matrix<float> blur(3,3,b_tab);
 
-    HiveEntropyNode* n = new HiveEntropyNode("192.168.1.35:6969");
+    std::shared_ptr<HiveEntropyNode> n = std::make_shared<HiveEntropyNode>("192.168.1.35:6969");
     Distributor<float> dist(n);
     dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
     BENCHMARK("Distributed RowColumn"){
