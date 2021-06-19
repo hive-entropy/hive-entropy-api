@@ -1,10 +1,8 @@
-#include <full.h>
-#include <opencv2/opencv.hpp>
-#include "iostream"
-#include <fcntl.h>
-#include <unistd.h>
+#include "full.h"
 
-using namespace std;
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <memory>
 
 #define WIDTH 200
 #define HEIGHT 200
@@ -31,7 +29,9 @@ int main() {
                        01, 04, 06, 04, 01,};
     Matrix<unsigned short> mask(5, 5, maskTab);*/
 
+    // Take the first camera as video input
     cv::VideoCapture camera(0, cv::CAP_V4L2);
+    // Set input size as close as possible to given width and height
     camera.set(3, WIDTH);
     camera.set(4, HEIGHT);
 
@@ -40,12 +40,15 @@ int main() {
         return 1;
     }
 
+    // Create the windows that will render the images
     cv::namedWindow("Convolution");
     cv::namedWindow("Base image");
     cv::Mat frame, grey;
 
-    HiveEntropyNode n("192.168.1.35:6969");
-    Distributor<unsigned short> dist(&n);
+    std::shared_ptr<HiveEntropyNode> n = std::make_shared<HiveEntropyNode>("192.168.1.38:6969");
+    Distributor<unsigned short> dist(n);
+    n->sendAskingHardwareSpecification("192.168.1.14:9999");
+    n->resolveNodeIdentities();
 
     while (true) {
         // Get camera image

@@ -24,10 +24,10 @@ class Peer{
         ~Peer() = default;
 
         // Getters
-        [[nodiscard]] Hardware getHardware() const;
-        [[nodiscard]] std::string getAddress() const;
-        [[nodiscard]] std::chrono::steady_clock::duration getLatency() const;
-        [[nodiscard]] std::chrono::steady_clock::time_point getTimestamp() const;
+        Hardware getHardware() const;
+        std::string getAddress() const;
+        std::chrono::steady_clock::duration getLatency() const;
+        std::chrono::steady_clock::time_point getTimestamp() const;
 
         // Setters
         void setHardware(Hardware const &_hardware);

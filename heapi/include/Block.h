@@ -27,19 +27,21 @@ class Block{
         ~Block() = default;
 
         // Getters
-        [[nodiscard]] std::shared_ptr<Peer> getResponsible() const;
-        [[nodiscard]] int getStartCol() const;
-        [[nodiscard]] int getStartRow() const;
-        [[nodiscard]] int getEndRow() const;
-        [[nodiscard]] int getEndCol() const;
-        [[nodiscard]] std::chrono::steady_clock::time_point getTimestamp() const;
-        [[nodiscard]] std::string getTaskId() const;
+        std::shared_ptr<Peer> getResponsible() const;
+        int getStartCol() const;
+        int getStartRow() const;
+        int getEndRow() const;
+        int getEndCol() const;
+        std::chrono::steady_clock::time_point getTimestamp() const;
+        std::string getTaskId() const;
 
         // Setters
         void setTaskId(std::string const &id);
 
-        // Operations
+        // Operators
         bool operator==(Block const &other) const;
+
+        // Methods
         void refresh();
 };
 

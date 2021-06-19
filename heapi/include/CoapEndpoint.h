@@ -28,7 +28,7 @@ class CoapEndpoint{
         explicit CoapEndpoint(std::string rootUri);
         ~CoapEndpoint();
 
-        // Operations
+        // Methods
         void send(Message m);
 
         void addResourceHandler(std::string const &path, coap_request_t const &method, coap_method_handler_t const &h);

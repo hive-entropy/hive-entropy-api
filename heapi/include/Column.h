@@ -2,53 +2,47 @@
 #define COL_H
 
 #include <type_traits>
+#include <vector>
 
 template<typename T>
-class Column{
-    static_assert(std::is_arithmetic<T>::value, "The Column type must be an arithmetic type");
+class Row;
+template<typename T>
+class Column {
+        static_assert(std::is_arithmetic<T>::value, "The Column type must be an arithmetic type");
 
     private:
+        friend class Row<T>;
         int position;
         int size;
-        T const *elems;
+        std::vector<T> elems;
 
     public:
         // Constructors
-        Column(int const &size, int const &position, T const *elems);
-        Column(const Column<T>& other);
+        Column(int const &_size, int const &_position, T const *_elems);
+        Column(const Column<T> &other) = default;
         ~Column() = default;
 
         // Getters
-        [[nodiscard]] T get(int const &j) const;
-        [[nodiscard]] int getSize() const;
-        [[nodiscard]] int getPosition() const;
+        T get(int const &j) const;
+        int getSize() const;
+        int getPosition() const;
 
         // Operators
-        [[nodiscard]] bool operator==(Column<T> const &other) const;
-        [[nodiscard]] bool operator!=(Column<T> const &other) const;
+        bool operator==(Column<T> const &other) const;
+        bool operator!=(Column<T> const &other) const;
 };
 
 template<typename T>
-Column<T>::Column(int const &size, int const &position, T const *elems) : size(size), position(position){
-    this->elems = (T*) malloc(size*sizeof(T));
-    for(int i=0;i<size;i++){
-        this->elems[i] = elems[i];
-    }
-}
-
-template<typename T>
-Column<T>::Column(const Column<T>& other){
-    size = other.size;
-    position  = other.position;
-    this->elems = (T*) malloc(size*sizeof(T));
-    for(int i=0;i<size;i++){
-        elems[i] = other.elems[i];
+Column<T>::Column(int const &_size, int const &_position, T const *_elems) : size(_size), position(_position) {
+    elems.resize(_size);
+    for (int i = 0; i < _size; i++) {
+        elems[i] = _elems[i];
     }
 }
 
 template<typename T>
 T Column<T>::get(int const &j) const {
-    if(j > size || j <0 )
+    if (j > size || j < 0)
         throw std::out_of_range("The given index doesn't fit into the column.");
     return elems[j];
 }
@@ -64,15 +58,12 @@ int Column<T>::getPosition() const {
 }
 
 template<typename T>
-bool Column<T>::operator==(Column<T> const& other) const{
-    if(position!=other.position||size!=other.size) return false;
-    for(int i=0;i<size;i++)
-            if(elems[i]!=other.elems[i]) return false;
-    return true;
+bool Column<T>::operator==(Column<T> const &other) const {
+    return position != other.position && size != other.size && elems != other.elems;
 }
 
 template<typename T>
-bool Column<T>::operator!=(Column<T> const& other) const{
+bool Column<T>::operator!=(Column<T> const &other) const {
     return *this != other;
 }
 

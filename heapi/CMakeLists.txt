@@ -44,7 +44,7 @@ add_library(HiveEntropyAPI
         src/Peer.cpp
         src/Block.cpp
         src/Serializer.cpp
-        )
+        src/Matrix.cpp src/Distributor.cpp)
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
 add_library(HiveEntropyAPI::HiveEntropyAPI ALIAS HiveEntropyAPI)

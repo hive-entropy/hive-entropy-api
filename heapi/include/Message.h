@@ -111,37 +111,37 @@ class Message{
          *
          * @return string the destination of the message.
          */
-        [[nodiscard]] std::string getDest() const;
+        std::string getDest() const;
 
         /**
          * @brief Get the headers of the message.
          *
          * @return vector<Headers, string> A map between headers and their values.
          */
-        [[nodiscard]] std::map<Headers, std::string> getHeaders() const;
+        std::map<Headers, std::string> getHeaders() const;
 
         /**
          * @brief Get the type of the message.
          *
          * @return MessageType the type of the message.
          */
-        [[nodiscard]] MessageType getType() const;
+        MessageType getType() const;
 
         /**
          * @brief Get the Content of the message.
          *
          * @return string the content of the message.
          */
-        [[nodiscard]] std::string getContent() const;
+        std::string getContent() const;
 
         /**
          * @brief Get the Http Method of the message.
          *
          * @return HttpMethod the Http Method of the message.
          */
-        [[nodiscard]] HttpMethod getHttpMethod() const;
+        HttpMethod getHttpMethod() const;
 
-        [[nodiscard]] std::string getPeer() const;
+        std::string getPeer() const;
 
         // Setters
         /**
