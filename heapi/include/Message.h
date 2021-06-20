@@ -61,7 +61,7 @@ enum class HttpMethod : int{
 };
 
 /**
- * @brief Represents an application-level message that can transit through the network.
+ * @brief Represents an application-level message that can transit through the references.
  */
 class Message{
     private:
@@ -190,7 +190,7 @@ class Message{
         /**
          * @brief Converts the Message object to a coap_pdu_t structure.
          *
-         * @return coap_pdu_t the structure that will eventually be sent through the network.
+         * @return coap_pdu_t the structure that will eventually be sent through the references.
          */
         coap_pdu_t * toCoapMessage(coap_session_t *sess);
 };

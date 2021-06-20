@@ -122,7 +122,7 @@ void CoapEndpoint::send(Message m){
 	
 	coap_pdu_t * coapMessage = m.toCoapMessage(sess);
 
-	if(coap_send_large(sess,coapMessage)==COAP_INVALID_MID)
+	if(coap_send_large(sess, coapMessage) == COAP_INVALID_MID)
 		throw("Unable to send message");
 }
 

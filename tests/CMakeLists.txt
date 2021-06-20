@@ -1,3 +1,5 @@
+message(VERBOSE "### TESTS ###")
+
 ##############################################
 # Import external dependencies
 
@@ -9,7 +11,7 @@ endif()
 
 function(download_library LIB_NAME URL DIRECTORY)
     # Download the required library in given folder
-    message(STATUS "Downloading library: ${LIB_NAME}")
+    message(STATUS "Downloading ${LIB_NAME} library...")
 
     # Extract file_name from url. The url must end with the header file with 'hpp' extension.
     string(REGEX MATCH "[^/]+\.hpp$" FILE_NAME ${URL})
@@ -70,3 +72,5 @@ add_test(
     NAME HiveEntropyTest
     COMMAND HiveEntropyTest -o report.xml -r junit
 )
+
+message("")

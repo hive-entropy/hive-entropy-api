@@ -1,7 +1,7 @@
 #include "Block.h"
 #include "Peer.h"
 
-Block::Block(Peer const &_responsible, int const &_startRow, int const &_endRow, int const &_startCol, int const &_endCol) : startCol(_startCol), startRow(_startRow), endCol(_endCol), endRow(_endRow){
+Block::Block(Peer const &_responsible, int const &_startRow, int const &_endRow, int const &_startCol, int const &_endCol) : startRow(_startRow), endRow(_endRow), startCol(_startCol), endCol(_endCol) {
     responsible = std::make_shared<Peer>(_responsible);
     timestamp = std::chrono::steady_clock::now();
 }

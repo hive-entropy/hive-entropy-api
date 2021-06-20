@@ -12,9 +12,9 @@ class Block{
         std::chrono::steady_clock::time_point timestamp;
 
         int startRow{};
+        int endRow{};
         int startCol{};
         int endCol{};
-        int endRow{};
 
         std::string taskId;
 

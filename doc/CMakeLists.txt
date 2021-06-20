@@ -1,6 +1,8 @@
 # Documentation with Doxygen, Sphinx and Breathe : https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 # Documentation reference : https://xtensor.readthedocs.io/en/latest/
 
+message(VERBOSE "### DOCUMENTATION ###")
+
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
 
@@ -12,6 +14,10 @@ set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/heapi)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 set(PROJECT_LOGO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/hive_entropy_logo.png)
+message(VERBOSE "Doxygen input directory set to ${DOXYGEN_INPUT_DIR}")
+message(VERBOSE "Doxygen output directory set to ${DOXYGEN_OUTPUT_DIR}")
+message(VERBOSE "Doxygen index file set to ${DOXYGEN_INDEX_FILE}")
+message(VERBOSE "Doxygen project logo set to ${PROJECT_LOGO_PATH}")
 
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
@@ -36,6 +42,9 @@ add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
+message(VERBOSE "Sphinx source directory set to ${SPHINX_SOURCE}")
+message(VERBOSE "Sphinx build directory set to ${SPHINX_BUILD}")
+message(VERBOSE "Sphinx index file set to ${SPHINX_INDEX_FILE}")
 
 # Only regenerate Sphinx when:
 # - Doxygen has rerun
@@ -62,3 +71,5 @@ add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
 include(GNUInstallDirs)
 install(DIRECTORY ${SPHINX_BUILD}
         DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
+message("")

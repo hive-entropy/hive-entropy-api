@@ -47,7 +47,7 @@ int main() {
 
     std::shared_ptr<HiveEntropyNode> n = std::make_shared<HiveEntropyNode>("192.168.1.38:6969");
     Distributor<unsigned short> dist(n);
-    n->sendAskingHardwareSpecification("192.168.1.14:9999");
+    n->sendAskingHardwareSpecification("192.168.1.38:9999");
     n->resolveNodeIdentities();
 
     while (true) {
