@@ -10,7 +10,7 @@
 class Message;
 class CoapEndpoint{
     private:
-        coap_address_t localAddress;
+        coap_address_t localAddress{};
         coap_uri_t* localRootUri;
 
         std::map<std::pair<std::string,coap_request_t>,coap_resource_t*> registeredResources;

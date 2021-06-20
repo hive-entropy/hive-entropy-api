@@ -11,10 +11,10 @@ class Block{
         std::shared_ptr<Peer> responsible;
         std::chrono::steady_clock::time_point timestamp;
 
-        int startRow;
-        int startCol;
-        int endCol;
-        int endRow;
+        int startRow{};
+        int startCol{};
+        int endCol{};
+        int endRow{};
 
         std::string taskId;
 

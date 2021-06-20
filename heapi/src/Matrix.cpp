@@ -25,7 +25,7 @@ class Matrix<unsigned char>;
 template<typename T>
 void Matrix<T>::putColumn(int const &j, T const *elems) {
     if (j < 0 || j >= columns)
-        throw OutOfBoundException("j", j, std::vector<int>(0, columns));
+        throw OutOfBoundException(j, "j", std::vector<int>(0, columns));
     for (int i = 0; i < rows; i++)
         data[columns * i + j] = elems[i];
 }
@@ -33,7 +33,7 @@ void Matrix<T>::putColumn(int const &j, T const *elems) {
 template<typename T>
 void Matrix<T>::putRow(int const &i, T const *elems) {
     if (i < 0 || i >= rows)
-        throw OutOfBoundException("i", i, std::vector<int>(0, rows));
+        throw OutOfBoundException(i, "i", std::vector<int>(0, rows));
     for (int j = 0; j < columns; j++)
         data[columns * i + j] = elems[j];
 }
@@ -41,18 +41,18 @@ void Matrix<T>::putRow(int const &i, T const *elems) {
 template<typename T>
 void Matrix<T>::put(int const &i, int const &j, T elem) {
     if (i < 0 || i >= rows)
-        throw OutOfBoundException("i", i, std::vector<int>(0, rows));
+        throw OutOfBoundException(i, "i", std::vector<int>(0, rows));
     else if (j < 0 || j >= columns)
-        throw OutOfBoundException("j", j, std::vector<int>(0, columns));
+        throw OutOfBoundException(j, "j", std::vector<int>(0, columns));
     data[columns * i + j] = elem;
 }
 
 template<typename T>
 void Matrix<T>::putSubmatrix(int const &startRow, int const &startColumn, Matrix const &m) {
     if (startColumn + m.columns - 1 >= columns)
-        throw OutOfBoundException("m.columns", m.columns, std::vector<int>(0, columns + 1 - startColumn));
+        throw OutOfBoundException(m.columns, "m.columns", std::vector<int>(0, columns + 1 - startColumn));
     else if (startRow + m.rows - 1 >= rows)
-        throw OutOfBoundException("m.rows", m.rows, std::vector<int>(0, rows - startRow + 1));
+        throw OutOfBoundException(m.rows, "m.rows", std::vector<int>(0, rows - startRow + 1));
     for (int i = startRow; i < m.rows + startRow; i++) {
         for (int j = startColumn; j < m.columns + startColumn; j++) {
             data[columns * i + j] = static_cast<T>(m.data[m.columns * (i - startRow) + (j - startColumn)]);
@@ -78,16 +78,16 @@ Matrix<T>::getSubmatrix(int const &startRow, int const &startColumn, int const &
 template<typename T>
 T Matrix<T>::get(int const &i, int const &j) const {
     if (i < 0 || i >= rows)
-        throw OutOfBoundException("i", i, std::vector<int>(0, rows));
+        throw OutOfBoundException(i, "i", std::vector<int>(0, rows));
     else if (j < 0 || j >= columns)
-        throw OutOfBoundException("j", j, std::vector<int>(0, columns));
+        throw OutOfBoundException(j, "j", std::vector<int>(0, columns));
     return data[columns * i + j];
 }
 
 template<typename T>
 T *Matrix<T>::getRow(int const &i) const {
     if (i < 0 || i >= rows)
-        throw OutOfBoundException("i", i, std::vector<int>(0, rows));
+        throw OutOfBoundException(i, "i", std::vector<int>(0, rows));
     T *res = (T *) malloc(columns * sizeof(T));
     for (int j = 0; j < columns; j++)
         res[j] = data[columns * i + j];
@@ -97,7 +97,7 @@ T *Matrix<T>::getRow(int const &i) const {
 template<typename T>
 T *Matrix<T>::getColumn(int const &j) const {
     if (j < 0 || j >= columns)
-        throw OutOfBoundException("j", j, std::vector<int>(0, columns));
+        throw OutOfBoundException(j, "j", std::vector<int>(0, columns));
     T *res = (T *) malloc(rows * sizeof(T));
     for (int i = 0; i < rows; i++)
         res[i] = data[columns * i + j];

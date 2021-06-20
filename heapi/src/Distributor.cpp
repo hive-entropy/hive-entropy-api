@@ -86,11 +86,13 @@ Distributor<T>::~Distributor() {
 
 template<typename T>
 std::string Distributor<T>::distributeMatrixMultiplication(Matrix<T> a, Matrix<T> b, MultiplicationMethod m) {
+    // Generate an unique id for the computation
     std::string uid = generateUID();
-
     spdlog::info("Obtained following UID={}", uid);
 
+    // Create the matrix that will store the computation results
     Matrix<T> result(a.getRows(), b.getColumns());
+    // Store the matrix in a map with its uid, to be fetched later
     storedPartialResults.insert(std::pair<std::string, Matrix<T>>(uid, result));
     spdlog::info("Created result for UID={}", uid);
 
@@ -128,12 +130,11 @@ std::string Distributor<T>::distributeMatrixConvolution(Matrix<T> a, Matrix<T> b
 
 template<typename T>
 void Distributor<T>::splitMatrixMultiplicationTask(std::string uid, Matrix<T> a, Matrix<T> b, MultiplicationMethod m) {
-
     spdlog::info("Waiting on assistance response lock");
     std::unique_lock<std::mutex> lock(addressLock);
-    bool timedOut = addressCv.wait_for(lock, std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT]) * 1000ms, [] {
-        return peers.size() >= std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);
-    });
+    /*bool timedOut = addressCv.wait_for(lock, std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT]) * 1000ms, [] {
+        return static_cast<int>(peers.size()) >= std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);
+    });*/
 
 
     std::unique_lock<std::mutex> uidLock(locks[uid]);
@@ -251,9 +252,9 @@ template<typename T>
 void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Matrix<T> b) {
     spdlog::info("Waiting on assistance response lock");
     std::unique_lock<std::mutex> lock(addressLock);
-    bool timedOut = addressCv.wait_for(lock, std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT]) * 1000ms, [] {
-        return peers.size() >= std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);
-    });
+    /*bool timedOut = addressCv.wait_for(lock, std::stoi(settings[Parameter::ASSISTANCE_TIMEOUT]) * 1000ms, [] {
+        return static_cast<int>(peers.size()) >= std::stoi(settings[Parameter::ASSISTANCE_MAX_PARTICIPANTS]);
+    });*/
 
     std::unique_lock<std::mutex> uidLock(locks[uid]);
 
@@ -261,12 +262,11 @@ void Distributor<T>::splitMatrixConvolutionTask(std::string uid, Matrix<T> a, Ma
 
     bool splitAlongRow = (a.getRows() > a.getColumns());
     int majorLength = (splitAlongRow) ? a.getRows() : a.getColumns();
-    int remainder = majorLength % nodeCount;
-    int packetSize = (majorLength - remainder) / nodeCount;
+    int remainder = majorLength % nodeCount; // FIXME: Throws an error if no node is found
+    int packetSize = (majorLength - remainder) / nodeCount; // FIXME: Same problem as above
 
     int borderSizeV = b.getRows() / 2;
     int borderSizeH = b.getColumns() / 2;
-
 
     spdlog::info("Sending packets to {} nodes and calculating {} packets locally", nodeCount, remainder);
     if (splitAlongRow) {
@@ -545,7 +545,7 @@ Matrix<T> Distributor<T>::get(std::string id) {
 
     storedPartialResults.erase(id);
     cvs.erase(id);
-    locks.erase(id); // FIXME: Invalid write detected with valgrind. « If an invalid position or range is specified, it causes undefined behavior. »
+    locks.erase(id);
     pendingBlocks.erase(id);
 
     return result;
@@ -696,7 +696,7 @@ void Distributor<T>::handleHealthResponse(Message m) {
     if (std::find(peers.begin(), peers.end(), p) != peers.end())
         healthyNodes.push_back(*std::find(peers.begin(), peers.end(), p));
     lock.unlock();
-    addressCv.notify_all();
+    addressCv.notify_all(); // FIXME: The uid used to notify the end of the second process isn't correct
 }
 
 template<typename T>

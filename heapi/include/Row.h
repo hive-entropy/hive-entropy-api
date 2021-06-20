@@ -12,8 +12,8 @@ class Row {
         static_assert(std::is_arithmetic<T>::value, "The Row type must be an arithmetic type");
 
     private:
-        int position;
         int size;
+        int position;
         std::vector<T> elems;
 
     public:

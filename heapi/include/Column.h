@@ -12,8 +12,8 @@ class Column {
 
     private:
         friend class Row<T>;
-        int position;
         int size;
+        int position;
         std::vector<T> elems;
 
     public:

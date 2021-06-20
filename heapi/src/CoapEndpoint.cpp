@@ -4,6 +4,7 @@
 #include <iostream>
 #include <ctime>
 #include <arpa/inet.h>
+#include <vector>
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
 	coap_set_log_level(LOG_DEBUG);
@@ -16,13 +17,13 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 
 	localRootUri = coap_new_uri(reinterpret_cast<const uint8_t*>(rootUri.c_str()),rootUri.length());
 
-	char* uriBuf = (char*) malloc(localRootUri->host.length*sizeof(char));
-	strncpy(uriBuf,reinterpret_cast<const char*>(localRootUri->host.s),localRootUri->host.length);
+	std::vector<char> uriBuf(localRootUri -> host.length);
+	strncpy(uriBuf.data(), reinterpret_cast<const char*>(localRootUri->host.s),localRootUri->host.length);
 
     coap_address_init(&localAddress);
 	localAddress.addr.sin.sin_family = AF_INET;
 
-	inet_pton(AF_INET, uriBuf, &localAddress.addr.sin.sin_addr);
+	inet_pton(AF_INET, uriBuf.data(), &localAddress.addr.sin.sin_addr);
 	localAddress.addr.sin.sin_port = htons(localRootUri->port);
 
 	context = coap_new_context(&localAddress);

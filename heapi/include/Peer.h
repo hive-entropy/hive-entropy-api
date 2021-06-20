@@ -13,7 +13,7 @@ class Peer{
          */
         std::shared_ptr<Hardware> hardware;
         std::string address;
-        std::chrono::steady_clock::duration latency;
+        std::chrono::steady_clock::duration latency{};
         std::chrono::steady_clock::time_point timestamp;
 
     public:

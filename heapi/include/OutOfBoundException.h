@@ -5,13 +5,15 @@
 #include <vector>
 
 class OutOfBoundException{
-    public:
-        OutOfBoundException(std::string var, int value,std::vector<int> bounds) : var(var),value(value), bounds(bounds){};
-        friend std::ostream& operator<<(std::ostream& os, OutOfBoundException const& ex);
     private:
+        int value;
         std::string var;
         std::vector<int> bounds;
-        int value;
+
+    public:
+        OutOfBoundException(int const &value, std::string const &var, std::vector<int> const &bounds)
+                : value(value), var(var), bounds(bounds){};
+        friend std::ostream& operator<<(std::ostream& os, OutOfBoundException const& ex);
 };
 
 #endif

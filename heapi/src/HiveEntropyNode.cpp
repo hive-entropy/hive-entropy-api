@@ -1,7 +1,7 @@
 #include "HiveEntropyNode.h"
 #include "GlobalContext.h"
 
-HiveEntropyNode::HiveEntropyNode(std::string const &uri) : /*HiveEntropyNodeInterface(uri),*/ coap(uri) {}
+HiveEntropyNode::HiveEntropyNode(std::string const &uri) : coap(uri) {}
 
 void HiveEntropyNode::send(Message const &m){
     coap.send(m);
