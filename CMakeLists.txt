@@ -15,7 +15,7 @@ enable_testing()
 
 add_subdirectory(heapi)
 add_subdirectory(tests)
-add_subdirectory(doc/config)
+add_subdirectory(doc)
 
 if(BUILD_EXAMPLES)
 add_subdirectory(examples)
