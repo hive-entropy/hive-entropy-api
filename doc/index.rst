@@ -10,9 +10,9 @@ HiveEntropyAPI : Bibliothèque de distribution de calculs sur un réseau Hive En
    :maxdepth: 2
    :caption: Contenu :
 
-   documentation/installation
-   documentation/usage
-   documentation/api_reference
+   installation
+   usage
+   references/api_reference
 
 Introduction
 ------------
@@ -48,10 +48,3 @@ Cette bibliothèque étant le coeur de notre projet, elle permet de couvrir à d
 * Création de breakpoints dans le programme pour attendre la reconstruction complète du résultat là où sa valeur est requise
 
 Tous les aspects de programmation concurrente, réseau/protocoles, découpage des tâches, décision des nœuds à utiliser et de l'ordre des calculs sont pris en charge par l'implémentation de la bibliothèque.
-
-Sommaire
---------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

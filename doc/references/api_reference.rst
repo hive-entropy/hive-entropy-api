@@ -4,8 +4,6 @@ Référence API
 Réseau
 ------
 
-----
-
 Message
 '''''''
 .. doxygenclass:: Message
