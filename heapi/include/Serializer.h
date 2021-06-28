@@ -12,7 +12,6 @@
 #include "Column.h"
 #include "Row.h"
 
-
 class Serializer{
     public:
         /**

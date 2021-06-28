@@ -1,20 +1,11 @@
 Référence API
 =============
 
-Réseau
-------
+.. toctree::
+   :maxdepth: 2
+   :caption: Modules :
 
-Message
-'''''''
-.. doxygenclass:: Message
-   :members:
-
-CoapEndpoint
-''''''''''''
-.. doxygenclass:: CoapEndpoint
-   :members:
-
-Distributor
-'''''''''''
-.. doxygenclass:: Distributor
-   :members:
+   network/network
+   distribution/distribution
+   computation/computation
+   utility/utility

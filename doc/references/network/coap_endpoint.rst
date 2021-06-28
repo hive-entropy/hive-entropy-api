@@ -1,0 +1,5 @@
+CoapEndpoint
+''''''''''''
+
+.. doxygenclass:: CoapEndpoint
+   :members:

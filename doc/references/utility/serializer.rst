@@ -1,0 +1,5 @@
+Serializer
+'''''''''''
+
+.. doxygenclass:: Serializer
+   :members:

@@ -1,0 +1,5 @@
+Matrix
+''''''
+
+.. doxygenclass:: Matrix
+   :members:

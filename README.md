@@ -56,28 +56,28 @@ sudo cmake --build build/ --target install
 
 ## Utilisation
 
-#### Initialiser le projet CMake
+### Initialiser le projet CMake
 ```
 cmake -Bbuild/ -S.
 ```
 
-#### Lancer la compilation/construction
+### Lancer la compilation/construction
 ```
 cmake --build build/
 ```
 
-#### Lancer les tests
+### Lancer les tests
 ```
 cmake --build build/ --target HiveEntropyTest
 ./build/tests/HiveEntropyTest
 ```
 
-#### Installer la bibliothèque
+### Installer la bibliothèque
 ```
 [sudo] cmake --build build/ --target install
 ```
 
-#### Générer la documentation
+### Générer la documentation
 Dépendances nécessaires :
 * doxygen
 * python-sphinx
@@ -89,6 +89,12 @@ Exécuter les cibles doxygen, puis la cible sphinx.
 cmake --build build/ --target Doxygen
 cmake --build build/ --target Sphinx
 ```
+
+### Accéder à la documentation
+
+Chemin pour la documentation Doxygen : `build/doc/doxygen/html/index.html`
+
+Chemin pour la documentation Sphinx : `build/doc/sphinx/index.html`
 
 ## Exemple
 

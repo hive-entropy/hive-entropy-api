@@ -7,7 +7,7 @@ HiveEntropyAPI : Bibliothèque de distribution de calculs sur un réseau Hive En
 =====================================================================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contenu :
 
    installation

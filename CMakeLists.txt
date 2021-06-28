@@ -18,5 +18,5 @@ add_subdirectory(tests)
 add_subdirectory(doc)
 
 if(BUILD_EXAMPLES)
-add_subdirectory(examples)
+    add_subdirectory(examples)
 endif(BUILD_EXAMPLES)

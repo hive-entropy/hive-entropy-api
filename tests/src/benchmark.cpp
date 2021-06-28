@@ -5,13 +5,13 @@
 #include "HiveEntropyNode.h"
 #include "Distributor.h"
 #include <random>
-#include <time.h>
+#include <ctime>
 
 #define _COTE 800
 
 TEST_CASE("Benchmarking"){
 
-    srand((unsigned) time(NULL));
+    srand((unsigned) time(nullptr));
 
     Matrix<float> a(_COTE,_COTE);
 
@@ -21,12 +21,16 @@ TEST_CASE("Benchmarking"){
         }
     }
 
-    float b_tab[] = {1,2,1,2,4,2,1,2,1};
+    float b_tab[] = {1, 2, 1,
+                     2, 4, 2,
+                     1, 2, 1};
     Matrix<float> blur(3,3,b_tab);
 
-    std::shared_ptr<HiveEntropyNode> n = std::make_shared<HiveEntropyNode>("192.168.1.35:6969");
+    char const *localHost = "192.168.1.38:6969"; // Insert your local ip address (run `ifconfig` on linux and use your 192... address)
+    std::shared_ptr<HiveEntropyNode> n = std::make_shared<HiveEntropyNode>(localHost);
     Distributor<float> dist(n);
     dist.configure(Parameter::ASSISTANCE_MAX_PARTICIPANTS,4);
+
     BENCHMARK("Distributed RowColumn"){
         std::string id = dist.distributeMatrixConvolution(a,blur);
         return dist.get(id);
