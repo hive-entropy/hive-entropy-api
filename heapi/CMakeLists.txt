@@ -28,6 +28,7 @@
 # Find system dependencies
 find_package(OpenBLAS)
 find_package(libcoap REQUIRED)
+find_package(Threads REQUIRED)
 
 ##############################################
 # Create target and set properties
@@ -60,7 +61,7 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
-
+# Allow the use of OpenBLAS via Makefile (which doesn't install the OpenBLASTargets.cmake file)
 if(NOT TARGET OpenBLAS::OpenBLAS)
         message(STATUS "No OpenBLASTargets.cmake found. Creating imported target.")
         add_library(OpenBLAS::OpenBLAS INTERFACE IMPORTED)
