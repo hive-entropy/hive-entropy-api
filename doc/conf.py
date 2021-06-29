@@ -29,7 +29,8 @@ author = 'Hive Entropy'
 # ones.
 extensions = [
     "sphinx_rtd_theme",
-    "breathe"
+    "breathe",
+    "myst_parser"
 ]
 
 # Breathe Configuration

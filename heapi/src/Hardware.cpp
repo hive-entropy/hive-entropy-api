@@ -1,9 +1,6 @@
 #include "Hardware.h"
 
-#include <sys/sysinfo.h>
-#include <sstream>
 #include <iostream>
-#include <string>
 #include <string>
 #include <algorithm>
 #include <cstring>

@@ -28,7 +28,7 @@ class GlobalContext{
         static void unregisterObject(std::string id);
 
         /**
-         * @brief Retreives an object from the map.
+         * @brief Retrieves an object from the map.
          * 
          * @param id The identifier of the object to retreive.
          * @return C The retrieved object.
@@ -36,6 +36,9 @@ class GlobalContext{
         static C& get(std::string id);
 
     private:
+        /**
+         * @brief A map to store any element of the GlobalContext's instance type.
+         */
         static std::map<std::string,C> repository;
 };
 
