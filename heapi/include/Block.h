@@ -2,38 +2,47 @@
 #define BLOCK_H
 
 #include <chrono>
+#include <string>
+#include <memory>
 
-#include "Peer.h"
-
+class Peer;
 class Block{
     private:
-        Peer* responsible;
+        std::shared_ptr<Peer> responsible;
         std::chrono::steady_clock::time_point timestamp;
 
-        int startCol;
-        int startRow;
-        int endCol;
-        int endRow;
+        int startRow{};
+        int endRow{};
+        int startCol{};
+        int endCol{};
 
         std::string taskId;
+
     public:
-        Block(Peer* responsible, int startRow, int endRow, int startCol, int endCol);
-        Block(int startRow, int startCol);
+        // Constructors
+        Block() = default;
+        Block(Block const &block) = default;
+        Block(Peer const &_responsible, int const &_startRow, int const &_endRow, int const &_startCol, int const &_endCol);
+        Block(int const &startRow, int const &startCol);
         ~Block() = default;
 
-        Peer* getResponsible();
-        int getStartCol();
-        int getStartRow();
-        int getEndRow();
-        int getEndCol();
-        std::chrono::steady_clock::time_point getTimestamp();
-        std::string getTaskId();
+        // Getters
+        std::shared_ptr<Peer> getResponsible() const;
+        int getStartCol() const;
+        int getStartRow() const;
+        int getEndRow() const;
+        int getEndCol() const;
+        std::chrono::steady_clock::time_point getTimestamp() const;
+        std::string getTaskId() const;
 
-        void setTaskId(std::string id);
+        // Setters
+        void setTaskId(std::string const &id);
 
+        // Operators
+        bool operator==(Block const &other) const;
+
+        // Methods
         void refresh();
-
-        bool operator==(const Block& other);
 };
 
 #endif

@@ -1,0 +1,5 @@
+HiveEntropyNode
+'''''''''''''''
+
+.. doxygenclass:: HiveEntropyNode
+   :members:

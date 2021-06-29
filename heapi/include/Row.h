@@ -2,70 +2,57 @@
 #define ROW_H
 
 #include <type_traits>
+#include <vector>
+#include <numeric>
 
 #include "Column.h"
 
 template<typename T>
-class Row{
+class Row {
+        static_assert(std::is_arithmetic<T>::value, "The Row type must be an arithmetic type");
 
-    static_assert(std::is_arithmetic<T>::value, "The Row type must be an arithmetic type");
+    private:
+        int size;
+        int position;
+        std::vector<T> elems;
 
     public:
-        Row(int size, int position, T* elems);
-        ~Row();
-        Row(const Row<T>& other);
-        T operator*(const Column<T>& col);
-        bool operator==(Row<T> const& other) const;
-        bool operator!=(Row<T> const& other) const;
+        // Constructors
+        Row(int const &_size, int const &_position, T const *_elems);
+        Row(const Row<T> &other) = default;
+        ~Row() = default;
 
-        T get(int j) const;
+        // Getters
+        T get(int const &j) const;
         int getSize() const;
         int getPosition() const;
 
-    private:
-        int position;
-        int size;
-        T* elems;
+        // Operators
+        T operator*(Column<T> const &col);
+        bool operator==(Row<T> const &other) const;
+        bool operator!=(Row<T> const &other) const;
 };
 
 template<typename T>
-Row<T>::Row(int size, int position, T* elems) : size(size), position(position){
-    this->elems = (T*) malloc(size*sizeof(T));
-    for(int i=0;i<size;i++){
-        this->elems[i] = elems[i];
+Row<T>::Row(int const &_size, int const &_position, T const *_elems) : size(_size), position(_position) {
+    elems.resize(_size);
+    for (int i = 0; i < _size; i++) {
+        elems[i] = _elems[i];
     }
 }
 
 template<typename T>
-Row<T>::~Row(){
+T Row<T>::operator*(const Column<T> &col) {
+    if (size != col.getSize())
+        throw std::length_error("The given column is not the same size as this row.");
 
+    return std::inner_product(elems.begin(), elems.end(), col.elems.begin(), 0);
 }
 
 template<typename T>
-Row<T>::Row(const Row<T>& other){
-    size = other.size;
-    position  = other.position;
-    this->elems = (T*) malloc(size*sizeof(T));
-    for(int i=0;i<size;i++){
-        elems[i] = other.elems[i];
-    }
-}
-
-template<typename T>
-T Row<T>::operator*(const Column<T>& col){
-    if(size!=col.getSize())
-        throw "Woops";
-    T sum = 0;
-    for(int i=0;i<size;i++){
-        sum += elems[i]*col.get(i);
-    }
-    return sum;
-}
-
-template<typename T>
-T Row<T>::get(int j) const {
-    if(j>size||j<0)
-        throw "Woops";
+T Row<T>::get(int const &j) const {
+    if (j > size || j < 0)
+        throw std::out_of_range("The given index doesn't fit into the row.");
     return elems[j];
 }
 
@@ -80,16 +67,13 @@ int Row<T>::getPosition() const {
 }
 
 template<typename T>
-bool Row<T>::operator==(Row<T> const& other) const{
-    if(position!=other.position||size!=other.size) return false;
-    for(int i=0;i<size;i++)
-            if(elems[i]!=other.elems[i]) return false;
-    return true;
+bool Row<T>::operator==(Row<T> const &other) const {
+    return position != other.position && size != other.size && elems != other.elems;
 }
 
 template<typename T>
-bool Row<T>::operator!=(Row<T> const& other) const{
-    return !(*this==other);
+bool Row<T>::operator!=(Row<T> const &other) const {
+    return *this != other;
 }
 
 #endif

@@ -21,6 +21,8 @@
 # https://dev.to/younup/cmake-on-stm32-episode-5-get-ready-for-c-1mh9
 # https://github.com/modm-io/modm
 
+message(VERBOSE "### HIVE ENTROPY API ###")
+
 ##############################################
 # External project dependencies
 
@@ -44,7 +46,7 @@ add_library(HiveEntropyAPI
         src/Peer.cpp
         src/Block.cpp
         src/Serializer.cpp
-        )
+        src/Matrix.cpp src/Distributor.cpp)
 
 # Add an alias so that library can be used inside the build tree, e.g. when testing
 add_library(HiveEntropyAPI::HiveEntropyAPI ALIAS HiveEntropyAPI)
@@ -60,9 +62,8 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
-
 if(NOT TARGET OpenBLAS::OpenBLAS)
-        message(STATUS "No OpenBLASTargets.cmake found. Creating imported target.")
+        message(STATUS "OpenBLAS exists but no OpenBLASTargets.cmake was found. Creating imported target...")
         add_library(OpenBLAS::OpenBLAS INTERFACE IMPORTED)
         if(OpenBLAS_LIBRARIES)
                 set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
@@ -72,14 +73,11 @@ if(NOT TARGET OpenBLAS::OpenBLAS)
         endif()
 endif()
 
-# Set the compiler to use C++17
-target_compile_features(HiveEntropyAPI
-        PRIVATE cxx_std_17
-        )
-
+set(HIVEENTROPYAPI_COMPILE_OPTIONS -Wall -g)
 target_compile_options(HiveEntropyAPI
-        PRIVATE -Wall -g -std=c++17
+        PRIVATE ${HIVEENTROPYAPI_COMPILE_OPTIONS}
 )
+message(VERBOSE "Compile options are ${HIVEENTROPYAPI_COMPILE_OPTIONS}")
 
 # Link the OpenBlas library to the target
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
@@ -90,8 +88,6 @@ target_link_libraries(HiveEntropyAPI
 
 ##############################################
 # Installation instructions
-
-# TODO: Add lib targets to install ?
 
 # Make cache variables for install destinations
 include(GNUInstallDirs)
@@ -143,8 +139,10 @@ install(FILES
 
 ##############################################
 ## Exporting from the build tree
-message(STATUS "Exported HiveEntropyAPITargets.cmake to ${CMAKE_CURRENT_BINARY_DIR}.")
 export(EXPORT HiveEntropyAPITargets
         FILE "${CMAKE_CURRENT_BINARY_DIR}/HiveEntropyAPITargets.cmake"
         NAMESPACE HiveEntropyAPI::
 )
+message(STATUS "Exported HiveEntropyAPITargets.cmake to ${CMAKE_CURRENT_BINARY_DIR}")
+
+message("")

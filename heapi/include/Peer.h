@@ -1,34 +1,46 @@
 #ifndef  PEER_H 
 #define PEER_H
 
-#include "Hardware.h"
-
 #include <chrono>
+#include <string>
+#include <memory>
 
+class Hardware;
 class Peer{
     private:
-        Hardware hardware;
+        /**
+         * Hardware object containing the characteristics of this peer. These are unique to each peer.
+         */
+        std::shared_ptr<Hardware> hardware;
         std::string address;
-        std::chrono::steady_clock::duration latency;
+        std::chrono::steady_clock::duration latency{};
         std::chrono::steady_clock::time_point timestamp;
 
     public:
-        Peer();
-        Peer(Hardware h, std::string address, std::chrono::steady_clock::duration latency);
+        // Constructors
+        Peer() = default;
+        Peer(Peer const &peer) = default;
+        Peer(Hardware const &_hardware, std::string const &address, std::chrono::steady_clock::duration const &latency);
         ~Peer() = default;
 
-        void setHardware(Hardware h);
-        void setAddress(std::string address);
-        void setLatency(std::chrono::steady_clock::duration latency);
+        // Getters
+        Hardware getHardware() const;
+        std::string getAddress() const;
+        std::chrono::steady_clock::duration getLatency() const;
+        std::chrono::steady_clock::time_point getTimestamp() const;
 
-        Hardware getHardware();
-        std::string getAddress();
-        std::chrono::steady_clock::duration getLatency();
-        std::chrono::steady_clock::time_point getTimestamp();
+        // Setters
+        void setHardware(Hardware const &_hardware);
+        void setAddress(std::string const &_address);
+        void setLatency(std::chrono::steady_clock::duration const &_latency);
 
+        // Operators
+        bool operator==(Peer const &other) const;
+
+        // Methods
         void refresh();
-
-        bool operator==(const Peer& other);
 };
+
+
 
 #endif

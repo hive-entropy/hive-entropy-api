@@ -6,32 +6,35 @@
 class Hardware
 {
     private:
-        float processorCoreNumber;
-        float processorFrequency;
-        float processorOccupation;
         float ramSize;
         float ramOccupation;
+        float processorFrequency;
+        float processorCoreNumber;
+        float processorOccupation;
 
     public:
+        // Constructors
         Hardware();
-        Hardware(std::string infos);
+        explicit Hardware(std::string infos);
         Hardware(const Hardware& other) = default;
-        ~Hardware();
+        ~Hardware() = default;
 
-        float findProcessorCoreNumber();
-        float findProcessorFrequency();
-        float findProcessorOccupation();
+        // Getters
+        int getRate() const;
+        float getRamSize() const;
+        float getRamOccupation() const;
+        float getProcessorFrequency() const;
+        float getProcessorCoreNumber() const;
+        float getProcessorOccupation() const;
+
+        // Output
+        std::string toString() const;
+
+        // Methods
         float findRamSize();
-        float findRamOccupation();
-
-        float getProcessorCoreNumber();
-        float getProcessorFrequency();
-        float getProcessorOccupation();
-        float getRamSize();
-        float getRamOccupation();
-
-        int getRate();
-
-        std::string toString();
+        float findRamOccupation() const;
+        float findProcessorFrequency();
+        float findProcessorCoreNumber();
+        float findProcessorOccupation();
 };
 #endif

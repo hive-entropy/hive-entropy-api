@@ -1,0 +1,5 @@
+Hardware
+''''''''
+
+.. doxygenclass:: Hardware
+   :members:

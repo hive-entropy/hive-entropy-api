@@ -1,0 +1,5 @@
+GlobalContext
+'''''''''''''
+
+.. doxygenclass:: GlobalContext
+   :members:

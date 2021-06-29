@@ -1,30 +1,29 @@
 #include "CoapEndpoint.h"
+#include "Message.h"
 
 #include <iostream>
-#include <time.h>
+#include <ctime>
 #include <arpa/inet.h>
+#include <vector>
 
 CoapEndpoint::CoapEndpoint(std::string rootUri){
-
 	coap_set_log_level(LOG_DEBUG);
 
 	//Failsafe URI format
 	if(rootUri.find("coap://")==std::string::npos)
 		rootUri = "coap://"+rootUri;
-	if(rootUri.find_last_of("/")==std::string::npos||rootUri.find_last_of("/")!=rootUri.length()-1)
+	if(rootUri.find_last_of('/')==std::string::npos||rootUri.find_last_of('/')!=rootUri.length()-1)
 		rootUri += "/";
 
 	localRootUri = coap_new_uri(reinterpret_cast<const uint8_t*>(rootUri.c_str()),rootUri.length());
 
-	char* uriBuf = (char*) malloc(localRootUri->host.length*sizeof(char));
-	strncpy(uriBuf,reinterpret_cast<const char*>(localRootUri->host.s),localRootUri->host.length);
-
-
+	std::vector<char> uriBuf(localRootUri -> host.length);
+	strncpy(uriBuf.data(), reinterpret_cast<const char*>(localRootUri->host.s),localRootUri->host.length);
 
     coap_address_init(&localAddress);
 	localAddress.addr.sin.sin_family = AF_INET;
 
-	inet_pton(AF_INET, uriBuf, &localAddress.addr.sin.sin_addr);
+	inet_pton(AF_INET, uriBuf.data(), &localAddress.addr.sin.sin_addr);
 	localAddress.addr.sin.sin_port = htons(localRootUri->port);
 
 	context = coap_new_context(&localAddress);
@@ -42,7 +41,7 @@ CoapEndpoint::CoapEndpoint(std::string rootUri){
 	coap_register_option(context,2055);
 	coap_register_option(context, 2057);
 
-	if(coap_join_mcast_group_intf(context,"239.0.0.1",NULL)!=0)
+	if(coap_join_mcast_group_intf(context,"239.0.0.1",nullptr)!=0)
 		throw "Couldn't join multicast";
 
 	keepAlive = true;
@@ -55,7 +54,7 @@ CoapEndpoint::~CoapEndpoint(){
 	coap_free_context(context);
 }
 
-void CoapEndpoint::run(){
+void CoapEndpoint::run() const{
 	while (keepAlive){
 		int result = coap_io_process(context,COAP_IO_WAIT);
 		if ( result < 0 )
@@ -63,7 +62,7 @@ void CoapEndpoint::run(){
 	}    
 }
 
-void CoapEndpoint::addResourceHandler(std::string path, coap_request_t method,coap_method_handler_t h){
+void CoapEndpoint::addResourceHandler(std::string const &path, coap_request_t const &method, coap_method_handler_t const &h){
 	coap_str_const_t *uri = coap_new_str_const(reinterpret_cast<const uint8_t*>(path.c_str()),path.length());
 	if(uri==NULL)
 		throw "Could not transform URI to a CoAP string";
@@ -74,34 +73,34 @@ void CoapEndpoint::addResourceHandler(std::string path, coap_request_t method,co
 	coap_add_resource(context,resource);
 
 	coap_register_handler(resource,method,h);
-	registeredResources.insert(std::pair<std::pair<string,coap_request_t>,coap_resource_t*>(std::pair<std::string,coap_request_t>(path,method),resource));
+	registeredResources.insert(std::pair<std::pair<std::string,coap_request_t>,coap_resource_t*>(std::pair<std::string,coap_request_t>(path,method),resource));
 }
 
-void CoapEndpoint::registerResponseHandler(coap_response_handler_t h){
+void CoapEndpoint::registerResponseHandler(coap_response_handler_t const &h) const{
 	coap_register_response_handler(context,h);
 }
 
-void CoapEndpoint::unregisterResponseHandler(){
-	coap_register_response_handler(context,NULL);
+void CoapEndpoint::unregisterResponseHandler() const{
+	coap_register_response_handler(context,nullptr);
 }
 
-void CoapEndpoint::unregisterResourceHandler(std::string path, coap_request_t method){
+void CoapEndpoint::unregisterResourceHandler(std::string const &path, coap_request_t const &method){
 	coap_resource_t* r = registeredResources.at(std::pair<std::string,coap_request_t>(path,method));
-	coap_register_handler(r,method,NULL);
+	coap_register_handler(r,method,nullptr);
 	coap_delete_resource(context,r);
 	registeredResources.erase(std::pair<std::string,coap_request_t>(path,method));
 }
 
 void CoapEndpoint::send(Message m){
-	string destination = m.getDest();
+	std::string destination = m.getDest();
 
-	string sessId = destination;
+	std::string sessId = destination;
 	if(sessId.find("coap://")==0)
 		sessId = sessId.substr(7,sessId.size()-1);
-	if(sessId.find(":")!=std::string::npos)
-		sessId = sessId.substr(0,sessId.find(":"));
-	if(sessId.find(":")!=std::string::npos)
-		sessId = sessId.substr(0,sessId.find("/"));
+	if(sessId.find(':')!=std::string::npos)
+		sessId = sessId.substr(0,sessId.find(':'));
+	if(sessId.find(':')!=std::string::npos)
+		sessId = sessId.substr(0,sessId.find('/'));
 
 	coap_session_t* sess;
 
@@ -121,9 +120,9 @@ void CoapEndpoint::send(Message m){
 		coap_session_init_token(sess,8,reinterpret_cast<const uint8_t*>("0000000"));
 	}
 	
-	coap_pdu_t* coapMessage = m.toCoapMessage(sess);
+	coap_pdu_t * coapMessage = m.toCoapMessage(sess);
 
-	if(coap_send_large(sess,coapMessage)==COAP_INVALID_MID)
+	if(coap_send_large(sess, coapMessage) == COAP_INVALID_MID)
 		throw("Unable to send message");
 }
 
