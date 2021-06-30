@@ -33,28 +33,101 @@ enum ImagePostProcess {
     Clamp
 };
 
+
+/**
+ * @brief .
+ */
 template<typename T>
 class Matrix{
     static_assert(std::is_arithmetic<T>::value, "The Matrix type must be an arithmetic type");
 
     private:
+        /**
+         * @brief Number of matrix row
+         */
         int rows;
+
+        /**
+         * @brief Number of matrix column
+         */
         int columns;
+
+        /**
+         * @brief Number of matrix elements
+         */
         int elements;
+
+        /**
+         * @brief Type of matrix's element
+         */
         int type;
+
+        /**
+         * @brief Matrix datas
+         */
         std::vector<T> data;
 
+
         template<typename M>
+        /**
+         * @brief Method chosen to handle matrix border in convolution
+         *
+         */
         static std::map<EdgeHandling, std::function< Matrix<T> (Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess) >> edgeHandlingMethods;
+
         template<typename M>
+        /**
+         * @brief Convolve matrix using mask and use the extend method to handle matrix borders
+         *
+         * @param matrix Matrix to convolve
+         * @param mask Mask to apply
+         * @param postProcess Method to use in post processing
+         * @return Matrix<T>
+         */
         static Matrix<T> extendConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
+
         template<typename M>
+        /**
+         * @brief Convolve matrix using mask and use the wrap method to handle matrix borders
+         *
+         * @param matrix Matrix to convolve
+         * @param mask Mask to apply
+         * @param postProcess Method to use in post processing
+         * @return Matrix<T>
+         */
         static Matrix<T> wrapConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
+
         template<typename M>
+        /**
+         * @brief Convolve matrix using mask and use the mirror method to handle matrix borders
+         *
+         * @param matrix Matrix to convolve
+         * @param mask Mask to apply
+         * @param postProcess Method to use in post processing
+         * @return Matrix<T>
+         */
         static Matrix<T> mirrorConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
+
         template<typename M>
+        /**
+         * @brief Convolve matrix using mask and use the crop method to handle matrix borders
+         *
+         * @param matrix Matrix to convolve
+         * @param mask Mask to apply
+         * @param postProcess Method to use in post processing
+         * @return Matrix<T>
+         */
         static Matrix<T> cropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
+
         template<typename M>
+        /**
+         * @brief Convolve matrix using mask and use the kernel crop method to handle matrix borders
+         *
+         * @param matrix Matrix to convolve
+         * @param mask Mask to apply
+         * @param postProcess Method to use in post processing
+         * @return Matrix<T>
+         */
         static Matrix<T> kernelCropConvolve(Matrix<T> const &matrix, Matrix<M> const &mask, ImagePostProcess const &postProcess);
 
     public:
@@ -102,6 +175,15 @@ class Matrix{
 
         // Methods
         template<typename M>
+        /**
+         * @brief Convolve matrix with mask using parametters
+         *
+         * @param mask Mask to apply
+         * @param edgeHandler Method used to handle edge
+         * @param nbIteration Number of iteration
+         * @param postProcess Method to use in post processing
+         * @return Matrix
+         */
         Matrix convolve(Matrix<M> const &mask, EdgeHandling const &edgeHandler = EdgeHandling::Extend, ushort const &nbIteration = 1, ImagePostProcess const &postProcess = ImagePostProcess::Normalize) const;
 
         // Output
