@@ -28,6 +28,8 @@
 # Find system dependencies
 find_package(OpenBLAS)
 find_package(libcoap REQUIRED)
+
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 
 ##############################################
@@ -86,7 +88,7 @@ target_compile_options(HiveEntropyAPI
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
 target_link_libraries(HiveEntropyAPI
-        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3
+        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3 Threads::Threads
 )
 
 ##############################################
