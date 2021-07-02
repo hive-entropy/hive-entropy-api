@@ -31,6 +31,10 @@ message(VERBOSE "### HIVE ENTROPY API ###")
 find_package(OpenBLAS)
 find_package(libcoap REQUIRED)
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
 ##############################################
 # Create target and set properties
 
@@ -62,6 +66,7 @@ target_include_directories(HiveEntropyAPI
             ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
+# Allow the use of OpenBLAS via Makefile (which doesn't install the OpenBLASTargets.cmake file)
 if(NOT TARGET OpenBLAS::OpenBLAS)
         message(STATUS "OpenBLAS exists but no OpenBLASTargets.cmake was found. Creating imported target...")
         add_library(OpenBLAS::OpenBLAS INTERFACE IMPORTED)
@@ -83,7 +88,7 @@ message(VERBOSE "Compile options are ${HIVEENTROPYAPI_COMPILE_OPTIONS}")
 # See for static linking : https://stackoverflow.com/a/48966279/15249616
 # Dependency should be made public ONLY if it is used in a public header
 target_link_libraries(HiveEntropyAPI
-        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3
+        PUBLIC OpenBLAS::OpenBLAS libcoap::coap-3 Threads::Threads
 )
 
 ##############################################
