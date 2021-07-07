@@ -33,30 +33,30 @@ Tous les aspects de programmation concurrente, réseau/protocoles, découpage de
 ## Installation
 
 ### Dépendances
-#### OpenBLAS
+
+#### Git - Curl - g++ - Cmake
 ```
-git clone --depth 1 --branch v0.3.14 git@github.com:xianyi/OpenBLAS.git
-cd OpenBLAS/
+sudo apt install git curl build-essential
+sudo snap install cmake --classic
+```
+
+#### Spdlog
+```
+git clone --depth 1 https://github.com/gabime/spdlog.git
+cd spdlog
 cmake -Bbuild/ -S.
-sudo cmake --build build/ --target install 
+sudo cmake --build build --target install
 ```
 
-À noter que l'option `-DBUILD_WITHOUT_LAPACK=ON` peut être passée lors de la première commande CMake pour éviter la compilation de LAPACK. Cependant cette option crée une erreur si aucun compilateur fortran n'est présent sur le système.
-
-Sur Raspberry Pi 3, les options définies dans le CMakeList.txt du projet OpenBLAS ne sont pas forcément adaptées.
-L'option `-DCCOMMON_OPT="-mfpu=vfpv3 -march=armv7-a -mfpu=neon -lpthread"` doit être ajoutée pour pouvoir compiler correctement.
-
-#### Libcoap
+#### OpenCV
 ```
-git clone --depth 1 --branch v4.3.0-rc3 git@github.com:obgm/libcoap.git
-cd libcoap/
-cmake -Bbuild/ -S. -DENABLE_DTLS=OFF -DENABLE_TCP=OFF
-sudo cmake --build build/ --target install
+wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip
+unzip opencv.zip
+mkdir -p build && cd build
+cmake  ../opencv-master
+cmake --build .
 ```
 
-## Installation
-
-### Dépendances
 #### OpenBLAS
 ```
 git clone --depth 1 --branch v0.3.14 git@github.com:xianyi/OpenBLAS.git
@@ -103,11 +103,11 @@ cmake --build build/ --target HiveEntropyTest
 
 #### Générer la documentation
 Dépendances nécessaires :
-* doxygen
-* python-sphinx
-* python-sphinx_rtd_theme
-* python-breathe
-* python-myst-parser
+* doxygen : `sudo apt install doxygen`
+* python-sphinx : `apt install python3-sphinx`
+* python-sphinx_rtd_theme : `pip3 install sphinx_rtd_theme`
+* python-breathe : `pip3 install breathe`
+* python-myst-parser : `pip3 install myst-parser`
 
 Exécuter les cibles doxygen, puis la cible sphinx.
 ```bash
